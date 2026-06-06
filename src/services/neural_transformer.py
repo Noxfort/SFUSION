@@ -129,9 +129,9 @@ class NeuralTransformer:
             local_schema.time_col = resolve_column(local_schema.time_col)
             local_schema.occupancy_col = resolve_column(local_schema.occupancy_col)
             
-            if assoc_type.upper() == "GLOBAL":
-                local_schema.flow_col = None
-                local_schema.intensity_col = None
+            # if assoc_type.upper() == "GLOBAL":
+            #     local_schema.flow_col = None
+            #     local_schema.intensity_col = None
             
             pl_df = pl.from_pandas(df_payload)
             exprs = self.math_engine.compile_ast(local_schema)
