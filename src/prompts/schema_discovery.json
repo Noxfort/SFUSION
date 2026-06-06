@@ -23,7 +23,7 @@
     "{content_str}",
     "",
     "INSTRUCTIONS:",
-    "1. Analyze the payload inside <think>...</think> tags.",
+    "1. Analyze the payload inside <think>...</think> tags. CRITICAL CONSTRAINT: Keep your reasoning extremely concise (maximum 3 sentences). DO NOT list data values, DO NOT write code, and DO NOT overthink.",
     "2. After thinking, you MUST output a STRICT JSON object containing exactly the mapped keys. DO NOT output any other text.",
     "3. If a column is not found in the payload, its value MUST be null (the JSON null, not a string). DO NOT hallucinate or guess keys.",
     "",

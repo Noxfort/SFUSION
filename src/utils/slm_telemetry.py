@@ -26,7 +26,11 @@ def get_hardware_telemetry():
         ram_usage = process.memory_info().rss / (1024 * 1024)
         telemetry.append(f"RAM (CPU): {ram_usage:.2f} MB")
     except ImportError:
-        pass
+        # Fallback to standard library if psutil is not installed
+        import resource
+        # ru_maxrss is in kilobytes on Linux
+        ram_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
+        telemetry.append(f"RAM (CPU Peak): {ram_usage:.2f} MB")
 
     # 2. Real GPU VRAM Usage (using nvidia-smi as fallback for llama.cpp allocations)
     # We use nvidia-smi to get accurate VRAM since llama.cpp bypasses PyTorch
