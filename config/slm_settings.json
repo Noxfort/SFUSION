@@ -1,5 +1,5 @@
 {
-  "model_path": "src/models/Phi-4-mini-reasoning-UD-Q8_K_XL.gguf",
+  "model_path": "src/models/Phi-4-mini-reasoning-UD-Q6_K_XL.gguf",
   "n_gpu_layers": -1,
   "n_ctx": 16384,
   "flash_attn": true,

@@ -11,11 +11,13 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+from src.utils.slm_telemetry import slm_logger, get_hardware_telemetry
+
 class SLMEngine:
     def __init__(self, model_path: str = None):
         config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'config', 'slm_settings.json')
         self.config = {
-            "model_path": "src/models/Phi-4-mini-reasoning-UD-Q8_K_XL.gguf",
+            "model_path": "src/models/Phi-4-mini-reasoning-UD-Q6_K_XL.gguf",
             "n_gpu_layers": -1,
             "n_ctx": 16384,
             "flash_attn": True,
@@ -39,6 +41,10 @@ class SLMEngine:
 
         try:
             logger.info(f"SLMEngine: Loading SLM from {self.model_path} with GPU offloading and TensorCores (Flash Attention)...")
+            slm_logger.info(f"--- INIT SLM ENGINE ---")
+            slm_logger.info(f"Model Path: {self.model_path}")
+            slm_logger.info(f"Config: {json.dumps(self.config)}")
+            slm_logger.info(f"Hardware Before Load: {get_hardware_telemetry()}")
             # n_gpu_layers=-1 delegates all layers to VRAM for maximum speed
             # flash_attn=True explicitamente ativa o uso de TensorCores (Ampere+) via FlashAttention no cuBLAS
             self.llm = Llama(
@@ -49,6 +55,7 @@ class SLMEngine:
                 verbose=self.config.get("verbose", False)
             )
             logger.info("SLMEngine: Loaded successfully.")
+            slm_logger.info(f"Hardware After Load: {get_hardware_telemetry()}")
         except Exception as e:
             logger.error(f"SLMEngine: Failed to load model: {e}")
 
@@ -103,6 +110,12 @@ class SLMEngine:
         try:
             temp = self.config.get("temperature", 0.0)
             logger.info(f"SLMEngine: Starting GPU inference for '{source_name}' (temperature={temp}, thinking activated)...")
+            slm_logger.info(f"\n--- INFERENCE START: {source_name} ---")
+            slm_logger.info(f"Assoc Type: {assoc_type}")
+            slm_logger.info(f"Hardware Pre-Inference: {get_hardware_telemetry()}")
+            
+            import time
+            start_t = time.time()
             response = self.llm(
                 prompt,
                 max_tokens=2048,
@@ -113,6 +126,11 @@ class SLMEngine:
             )
             
             output_text = response["choices"][0]["text"].strip()
+            end_t = time.time()
+            
+            slm_logger.info(f"Inference Time: {end_t - start_t:.2f}s")
+            slm_logger.info(f"Hardware Post-Inference: {get_hardware_telemetry()}")
+            slm_logger.info(f"Raw Output Length: {len(output_text)} chars")
             
             if not output_text.startswith("<think>"):
                 output_text = "<think>\n" + output_text
@@ -123,15 +141,16 @@ class SLMEngine:
             if think_match:
                 think_content = think_match.group(1).strip()
                 logger.info(
-                    f"\n"
-                    f"===========================================================\n"
+                    f"\n===========================================================\n"
                     f"🧠 SLM THINKING REASONING: [{source_name}]\n"
                     f"===========================================================\n"
                     f"{think_content}\n"
                     f"==========================================================="
                 )
+                slm_logger.debug(f"Thinking Block:\n{think_content}")
             else:
                 logger.warning(f"SLMEngine: No <think> block detected for {source_name}.")
+                slm_logger.warning("No <think> block detected.")
             
             # Remove the <think> block to extract only the payload mapping
             content_without_think = re.sub(r'<think>.*?</think>', '', output_text, flags=re.DOTALL).strip()
@@ -162,17 +181,16 @@ class SLMEngine:
                             data[key] = val
 
             logger.info(
-                f"\n"
-                f"🎯 EXTRACTED SCHEMA: [{source_name}]\n"
+                f"\n🎯 EXTRACTED SCHEMA: [{source_name}]\n"
                 f"-----------------------------------------------------------\n"
                 f"{json.dumps(data, indent=2)}\n"
                 f"-----------------------------------------------------------"
             )
+            slm_logger.info(f"Extracted Data:\n{json.dumps(data, indent=2)}")
+            slm_logger.info(f"--- INFERENCE END: {source_name} ---")
             
-            # CLEAR KV CACHE: Ensure SLM is fully wiped clean for the next sensor to prevent contamination
-            if hasattr(self.llm, "reset"):
-                self.llm.reset()
-                logger.info(f"SLMEngine: KV Cache reset successfully for '{source_name}' (Amnesia verified).")
+            # KV Cache reset explicitly removed to prevent GPU reloading bottleneck. 
+            # Context isolation is naturally handled by not concatenating previous prompts.
             
             return KinematicMap(
                 speed_col=data.get("speed_col"),
@@ -185,7 +203,21 @@ class SLMEngine:
             )
         except Exception as e:
             logger.error(f"SLMEngine: Inference failed: {e}")
-            if hasattr(self.llm, "reset"):
-                self.llm.reset()
             return None
 
+    def unload(self):
+        """Forces the release of the LLM from GPU VRAM and triggers Garbage Collection."""
+        if self.llm:
+            del self.llm
+            self.llm = None
+        import gc
+        gc.collect()
+        try:
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except ImportError:
+            pass
+        logger.info("SLMEngine: Model unloaded and RAM/VRAM released.")
+        slm_logger.info("--- MODEL UNLOADED ---")
+        slm_logger.info(f"Hardware After Unload: {get_hardware_telemetry()}")

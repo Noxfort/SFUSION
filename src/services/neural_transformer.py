@@ -39,6 +39,8 @@ class NeuralTransformer:
         """Unloads the SLM Engine from memory."""
         if self.slm_engine:
             logging.info("NeuralTransformer: Unloading SLMEngine...")
+            if hasattr(self.slm_engine, 'unload'):
+                self.slm_engine.unload()
             del self.slm_engine
             self.slm_engine = None
         self._schema_cache.clear()
