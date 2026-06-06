@@ -1,0 +1,95 @@
+{
+    "main_window": {
+        "window_title": "SFusion Mapper - 配置编辑器",
+        "toolbar_name": "主工具栏",
+        "action_open_map": "打开地图",
+        "action_open_map_tip": "加载地图文件 (.net.xml)",
+        "action_add_source": "添加数据源",
+        "action_add_source_tip": "添加数据源文件夹",
+        
+        "action_open_project": "打开项目",
+        "action_open_project_tip": "打开一个现有的项目文件 (.sfm.json)",
+        "action_save_project": "保存项目",
+        "action_save_project_tip": "保存当前项目 (.sfm.json)",
+        
+        "action_save_config": "生成 .db",
+        "action_save_config_tip": "为 Synapse 生成 .db 文件",
+        
+        "action_settings": "设置",
+        "action_settings_tip": "打开应用程序设置 (语言等)",
+
+        "status_ready": "准备就绪",
+        "status_map_loaded": "地图 '{name}' 已加载。",
+        "status_source_added": "数据源 '{name}' 已添加。",
+        "status_config_saved": "配置 '{name}' 已成功保存。"
+    },
+    "dialog": {
+        "open_map": {
+            "title": "打开 SUMO 地图",
+            "filter": "SUMO 网络文件 (*.net.xml *.net.xml.gz)"
+        },
+        "add_source": {
+            "title": "添加数据源 (文件夹)",
+            "type_title": "关联类型",
+            "type_text": "您希望如何关联数据源 '{name}'?",
+            "type_global": "全局 (地图级别)",
+            "type_local": "本地 (街道/节点级别)"
+        },
+        "save_config": {
+            "title": "保存配置",
+            "filter": "配置文件 (*.db)"
+        },
+        "open_project": {
+            "title": "打开 SFusion 项目",
+            "filter": "SFusion Mapper 项目 (*.sfm.json)"
+        },
+        "save_project": {
+            "title": "保存 SFusion 项目",
+            "filter": "SFusion Mapper 项目 (*.sfm.json)"
+        },
+        "error": {
+            "title": "错误",
+            "generic_load": "加载文件失败。\n错误: {error}",
+            "generic_save": "保存文件失败。\n错误: {error}"
+        }
+    },
+    "sources_panel": {
+        "title": "数据源",
+        "association_title": "关联类型 (信息)",
+        "radio_global": "全局",
+        "radio_global_tip": "此数据源适用于整个地图。",
+        "radio_local": "本地",
+        "radio_local_tip": "此数据源与特定元素 (街道/节点) 关联。",
+        "menu": {
+            "modify_type": "更改类型 (全局/本地)",
+            "delete": "删除数据源"
+        }
+    },
+    "info_panel": {
+        "title": "元素编辑器",
+        "title_node": "节点编辑器 (交叉口)",
+        "title_edge": "街道编辑器 (路段)",
+        "sumo_id": "ID (SUMO):",
+        "real_name": "真实名称:",
+        "real_name_placeholder": "例如: 主干道",
+        "data_source": "本地数据源:",
+        "data_source_tip": "选择要与此元素关联的本地数据源。",
+        "button_save": "保存",
+        "button_close": "关闭"
+    },
+    
+    "settings_dialog": {
+        "title": "设置",
+        "language": {
+            "label": "语言 (Language):",
+            "tip": "更改界面语言。需要重启。"
+        },
+        "button_ok": "保存",
+        "button_cancel": "取消",
+        
+        "restart_required": {
+            "title": "需要重启",
+            "body": "语言更改将在重启应用程序后生效。"
+        }
+    }
+}

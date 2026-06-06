@@ -1,0 +1,35 @@
+# Arquivos do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pastas de ambiente virtual
+.venv
+venv/
+*env/
+
+# Arquivos de IDE e SO
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Pastas de build do PyInstaller
+dist/
+build/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# --- IMPORTANTE ---
+# Certifique-se de que NÃO há uma linha "*.spec" aqui em baixo!

@@ -1,0 +1,9 @@
+{
+    "errors.generic": "Ocorreu um erro inesperado: {error}",
+    "errors.config.read_failed": "Falha ao ler o ficheiro de configuração: {error}",
+    "errors.config.write_failed": "Falha ao escrever o ficheiro de configuração: {error}",
+    "errors.i18n.load_failed": "Falha ao carregar o ficheiro de idioma {lang}: {error}",
+    "errors.map_importer.invalid_xml": "Erro: Ficheiro XML de mapa inválido. {error}",
+    "errors.data_importer.analysis_failed": "Erro: Falha ao analisar a pasta de dados. {error}",
+    "errors.persistence.save_failed": "Erro: Falha ao salvar o ficheiro de mapeamento. {error}"
+}

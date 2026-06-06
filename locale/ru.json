@@ -1,0 +1,95 @@
+{
+    "main_window": {
+        "window_title": "SFusion Mapper - Редактор Конфигурации",
+        "toolbar_name": "Основная Панель Инструментов",
+        "action_open_map": "Открыть Карту",
+        "action_open_map_tip": "Загрузить файл карты (.net.xml)",
+        "action_add_source": "Добавить Источник",
+        "action_add_source_tip": "Добавить папку источника данных",
+        
+        "action_open_project": "Открыть Проект",
+        "action_open_project_tip": "Открыть файл проекта (.sfm.json)",
+        "action_save_project": "Сохранить Проект",
+        "action_save_project_tip": "Сохранить текущий проект (.sfm.json)",
+        
+        "action_save_config": "Создать .db",
+        "action_save_config_tip": "Создать .db файл для Synapse",
+        
+        "action_settings": "Настройки",
+        "action_settings_tip": "Открыть настройки приложения (Язык и т.д.)",
+
+        "status_ready": "Готово",
+        "status_map_loaded": "Карта '{name}' загружена.",
+        "status_source_added": "Источник данных '{name}' добавлен.",
+        "status_config_saved": "Конфигурация '{name}' успешно сохранена."
+    },
+    "dialog": {
+        "open_map": {
+            "title": "Открыть Карту SUMO",
+            "filter": "Файлы Сети SUMO (*.net.xml *.net.xml.gz)"
+        },
+        "add_source": {
+            "title": "Добавить Источник Данных (Папка)",
+            "type_title": "Тип Ассоциации",
+            "type_text": "Как вы хотите связать источник '{name}'?",
+            "type_global": "Глобальный (Уровень Карты)",
+            "type_local": "Локальный (Уровень Улицы/Узла)"
+        },
+        "save_config": {
+            "title": "Сохранить Конфигурацию",
+            "filter": "Файл Конфигурации (*.db)"
+        },
+        "open_project": {
+            "title": "Открыть Проект SFusion",
+            "filter": "Проект SFusion Mapper (*.sfm.json)"
+        },
+        "save_project": {
+            "title": "Сохранить Проект SFusion",
+            "filter": "Проект SFusion Mapper (*.sfm.json)"
+        },
+        "error": {
+            "title": "Ошибка",
+            "generic_load": "Не удалось загрузить файл.\nОшибка: {error}",
+            "generic_save": "Не удалось сохранить файл.\nОшибка: {error}"
+        }
+    },
+    "sources_panel": {
+        "title": "Источники Данных",
+        "association_title": "Тип Ассоциации (Инфо)",
+        "radio_global": "Глобальный",
+        "radio_global_tip": "Этот источник применяется ко всей карте.",
+        "radio_local": "Локальный",
+        "radio_local_tip": "Этот источник связан с конкретным элементом (улица/узел).",
+        "menu": {
+            "modify_type": "Изменить Тип (Глобальный/Локальный)",
+            "delete": "Удалить Источник"
+        }
+    },
+    "info_panel": {
+        "title": "Редактор Элемента",
+        "title_node": "Редактор Узла (Перекресток)",
+        "title_edge": "Редактор Улицы (Ребро)",
+        "sumo_id": "ID (SUMO):",
+        "real_name": "Настоящее Имя:",
+        "real_name_placeholder": "напр: Главная ул.",
+        "data_source": "Локальные Источники Данных:",
+        "data_source_tip": "Выберите локальные источники для связи с этим элементом.",
+        "button_save": "Сохранить",
+        "button_close": "Закрыть"
+    },
+    
+    "settings_dialog": {
+        "title": "Настройки",
+        "language": {
+            "label": "Язык (Language):",
+            "tip": "Изменяет язык интерфейса. Требуется перезапуск."
+        },
+        "button_ok": "Сохранить",
+        "button_cancel": "Отмена",
+        
+        "restart_required": {
+            "title": "Требуется Перезапуск",
+            "body": "Изменение языка будет применено после перезапуска приложения."
+        }
+    }
+}

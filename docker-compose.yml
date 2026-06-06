@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  sfusion-mapper:
+    # Nome da imagem que será criada ou usada
+    image: sfusion-app
+    
+    # Diz ao Docker para construir a imagem usando o Dockerfile na pasta atual
+    build: .
+    
+    # Configurações de ambiente para a interface gráfica (GUI)
+    environment:
+      # Passa o número do seu monitor (ex: :0 ou :1) do host para o container
+      - DISPLAY=${DISPLAY}
+      
+      # Correção necessária para aplicações Qt/PySide6 em Docker
+      - QT_X11_NO_MITSHM=1
+      
+      # Força o uso do plugin XCB (X11) em vez de Wayland
+      - QT_QPA_PLATFORM=xcb
+      
+    # Mapeia o socket do servidor gráfico do Ubuntu para o container
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix

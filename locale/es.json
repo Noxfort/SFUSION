@@ -1,0 +1,95 @@
+{
+    "main_window": {
+        "window_title": "SFusion Mapper - Editor de Configuración",
+        "toolbar_name": "Barra de Herramientas Principal",
+        "action_open_map": "Abrir Mapa",
+        "action_open_map_tip": "Cargar un archivo de mapa (.net.xml)",
+        "action_add_source": "Añadir Fuente",
+        "action_add_source_tip": "Añadir una carpeta de fuente de datos",
+        
+        "action_open_project": "Abrir Proyecto",
+        "action_open_project_tip": "Abrir un archivo de proyecto (.sfm.json)",
+        "action_save_project": "Guardar Proyecto",
+        "action_save_project_tip": "Guardar el proyecto actual (.sfm.json)",
+        
+        "action_save_config": "Generar Dataset",
+        "action_save_config_tip": "Ejecutar pipeline de ingestión y exportar .parquet final para IA",
+        
+        "action_settings": "Configuración",
+        "action_settings_tip": "Abrir la configuración de la aplicación (Idioma, etc.)",
+
+        "status_ready": "Listo",
+        "status_map_loaded": "Mapa '{name}' cargado.",
+        "status_source_added": "Fuente de datos '{name}' añadida.",
+        "status_config_saved": "Dataset '{name}' generado con éxito."
+    },
+    "dialog": {
+        "open_map": {
+            "title": "Abrir Mapa SUMO",
+            "filter": "Archivos de Red SUMO (*.net.xml *.net.xml.gz)"
+        },
+        "add_source": {
+            "title": "Añadir Fuente de Datos (Carpeta)",
+            "type_title": "Tipo de Asociación",
+            "type_text": "¿Cómo desea asociar la fuente '{name}'?",
+            "type_global": "Global (Nivel de Mapa)",
+            "type_local": "Local (Nivel de Calle/Nodo)"
+        },
+        "save_config": {
+            "title": "Generar Dataset de Tráfico",
+            "filter": "Dataset Parquet (*.parquet)"
+        },
+        "open_project": {
+            "title": "Abrir Proyecto SFusion",
+            "filter": "Proyecto SFusion Mapper (*.sfm.json)"
+        },
+        "save_project": {
+            "title": "Guardar Proyecto SFusion",
+            "filter": "Proyecto SFusion Mapper (*.sfm.json)"
+        },
+        "error": {
+            "title": "Error",
+            "generic_load": "Error al cargar el archivo.\nError: {error}",
+            "generic_save": "Error al guardar el archivo.\nError: {error}"
+        }
+    },
+    "sources_panel": {
+        "title": "Fuentes de Datos",
+        "association_title": "Tipo de Asociación (Info)",
+        "radio_global": "Global",
+        "radio_global_tip": "Esta fuente se aplica a todo el mapa.",
+        "radio_local": "Local",
+        "radio_local_tip": "Esta fuente está asociada a un elemento específico (calle/nodo).",
+        "menu": {
+            "modify_type": "Cambiar Tipo (Global/Local)",
+            "delete": "Eliminar Fuente"
+        }
+    },
+    "info_panel": {
+        "title": "Editor de Elementos",
+        "title_node": "Editor de Nodo (Intersección)",
+        "title_edge": "Editor de Calle (Arista)",
+        "sumo_id": "ID (SUMO):",
+        "real_name": "Nombre Real:",
+        "real_name_placeholder": "ej: Av. Principal",
+        "data_source": "Fuentes de Datos Locales:",
+        "data_source_tip": "Seleccione las fuentes locales para asociar a este elemento.",
+        "button_save": "Guardar",
+        "button_close": "Cerrar"
+    },
+    
+    "settings_dialog": {
+        "title": "Configuración",
+        "language": {
+            "label": "Idioma (Language):",
+            "tip": "Cambia el idioma de la interfaz. Requiere reiniciar."
+        },
+        "button_ok": "Guardar",
+        "button_cancel": "Cancelar",
+        
+        "restart_required": {
+            "title": "Reinicio Requerido",
+            "body": "El cambio de idioma se aplicará después de reiniciar la aplicación."
+        }
+    }
+}

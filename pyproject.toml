@@ -1,0 +1,45 @@
+# pyproject.toml
+#
+# PEP 621 – Storing project metadata in pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sfusion-mapper"
+version = "0.1.0"
+description = "Visual utility tool for the SFusion/SYNAPSE ecosystem to create data mapping configurations."
+readme = "README.md"
+authors = [
+    { name = "Gabriel Moraes - Noxfort Labs", email = "dev@noxfort.com" },
+]
+license = { text = "AGPL-3.0-or-later" } # SPDX identifier for AGPL 3.0 or later
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+
+# Production Dependencies
+# What the application needs to run
+dependencies = [
+    "pyside6",
+    "lxml",
+    "pandas",
+    "openpyxl",
+]
+
+[project.optional-dependencies]
+# Development Dependencies (install with: pip install -e ".[dev]")
+dev = [
+    "pytest>=7.0",
+]

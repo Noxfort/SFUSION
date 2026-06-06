@@ -1,0 +1,95 @@
+{
+    "main_window": {
+        "window_title": "SFusion Mapper - Traffic Data Engineering",
+        "toolbar_name": "Main Toolbar",
+        "action_open_map": "Open Map",
+        "action_open_map_tip": "Load a map file (.net.xml)",
+        "action_add_source": "Add Source",
+        "action_add_source_tip": "Add a data source folder (Waze, TomTom, Camera)",
+        
+        "action_open_project": "Open Project",
+        "action_open_project_tip": "Open an existing project file (.sfm.json)",
+        "action_save_project": "Save Project",
+        "action_save_project_tip": "Save the current project (.sfm.json)",
+        
+        "action_save_config": "Generate Dataset",
+        "action_save_config_tip": "Run ingestion pipeline and export final .parquet for AI",
+        
+        "action_settings": "Settings",
+        "action_settings_tip": "Open application settings (Language, etc.)",
+
+        "status_ready": "Ready",
+        "status_map_loaded": "Map '{name}' loaded.",
+        "status_source_added": "Data source '{name}' added.",
+        "status_config_saved": "Dataset '{name}' generated successfully."
+    },
+    "dialog": {
+        "open_map": {
+            "title": "Open SUMO Map",
+            "filter": "SUMO Network Files (*.net.xml *.net.xml.gz)"
+        },
+        "add_source": {
+            "title": "Add Data Source (Folder)",
+            "type_title": "Association Type",
+            "type_text": "How do you want to associate the source '{name}'?",
+            "type_global": "Global (Map Level)",
+            "type_local": "Local (Edge/Node Level)"
+        },
+        "save_config": {
+            "title": "Generate Traffic Dataset",
+            "filter": "Parquet Dataset (*.parquet)"
+        },
+        "open_project": {
+            "title": "Open SFusion Project",
+            "filter": "SFusion Mapper Project (*.sfm.json)"
+        },
+        "save_project": {
+            "title": "Save SFusion Project",
+            "filter": "SFusion Mapper Project (*.sfm.json)"
+        },
+        "error": {
+            "title": "Error",
+            "generic_load": "Failed to load file.\nError: {error}",
+            "generic_save": "Failed to save file.\nError: {error}"
+        }
+    },
+    "sources_panel": {
+        "title": "Data Sources",
+        "association_title": "Association Type (Info)",
+        "radio_global": "Global",
+        "radio_global_tip": "This source applies to the entire map (e.g. Waze).",
+        "radio_local": "Local",
+        "radio_local_tip": "This source is associated with a specific element (e.g. Camera).",
+        "menu": {
+            "modify_type": "Change Type (Global/Local)",
+            "delete": "Remove Source"
+        }
+    },
+    "info_panel": {
+        "title": "Element Editor",
+        "title_node": "Node Editor (Junction)",
+        "title_edge": "Edge Editor (Street)",
+        "sumo_id": "ID (SUMO):",
+        "real_name": "Real Name:",
+        "real_name_placeholder": "ex: Main St.",
+        "data_source": "Local Data Sources:",
+        "data_source_tip": "Select the local sources to associate with this element.",
+        "button_save": "Save",
+        "button_close": "Close"
+    },
+    
+    "settings_dialog": {
+        "title": "Settings",
+        "language": {
+            "label": "Language:",
+            "tip": "Changes the interface language. Requires restart."
+        },
+        "button_ok": "Save",
+        "button_cancel": "Cancel",
+        
+        "restart_required": {
+            "title": "Restart Required",
+            "body": "The language change will be applied after restarting the application."
+        }
+    }
+}

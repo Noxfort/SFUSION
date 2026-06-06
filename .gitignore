@@ -1,0 +1,42 @@
+# Models (large binary files)
+src/models/*.gguf
+src/models/mpnet_multilingual/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Data
+*.parquet
+*.db
+
+# Builds & Packages
+build/
+dist/
+*.spec
+*.lintian
+*.egg-info/
+*.egg
+
+# Environment
+.env
+
+# OS
+.DS_Store
+*.swp

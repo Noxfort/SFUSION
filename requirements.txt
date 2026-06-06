@@ -1,0 +1,29 @@
+# SFusion (SYNAPSE Fusion) Mapper - Requirements
+#
+# Copyright (C) 2025 Noxfort Labs
+#
+# Licensed under the GNU Affero General Public License Version 3 or later.
+#
+# File: requirements.txt
+# Author: Gabriel Moraes
+# Date: November 30, 2025
+# Description:
+#    Python package dependencies for production and development.
+#    (UPDATED: Added 'pyarrow' for Parquet export support)
+
+# Production Dependencies
+# (What the application needs to run)
+pyside6
+lxml
+pandas
+openpyxl
+pyarrow  # <--- NEW: Engine for writing Parquet files
+polars
+pydantic
+sentence-transformers  # <--- Semantic Encoder (mpnet) for vectorial schema discovery
+numpy                  # <--- Tensor math (cosine similarity)
+llama-cpp-python     # <--- ATIVADO: SLM Inferência com suporte a CUDA
+
+# Development Dependencies
+# (Tools for testing and development)
+pytest
