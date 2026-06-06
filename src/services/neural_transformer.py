@@ -43,7 +43,7 @@ class NeuralTransformer:
             self.slm_engine = None
         self._schema_cache.clear()
 
-    def discover_schema(self, raw_text: str, folder_name: str) -> Optional[KinematicMap]:
+    def discover_schema(self, raw_text: str, folder_name: str, assoc_type: str = "LOCAL") -> Optional[KinematicMap]:
         """
         Uses the Semantic Encoder to classify column names into kinematic properties
         via cosine similarity (tensor dot product). Instantaneous inference.
@@ -61,7 +61,7 @@ class NeuralTransformer:
         )
         
         if self.slm_engine:
-            schema = self.slm_engine.discover_schema(raw_text, folder_name)
+            schema = self.slm_engine.discover_schema(raw_text, folder_name, assoc_type)
             if schema:
                 # Sanity Filter: Wipe out string hallucinations like "NULL"
                 for field in ['speed_col', 'flow_col', 'intensity_col', 'distance_col', 'time_col', 'occupancy_col']:
@@ -129,9 +129,9 @@ class NeuralTransformer:
             local_schema.time_col = resolve_column(local_schema.time_col)
             local_schema.occupancy_col = resolve_column(local_schema.occupancy_col)
             
-            # if assoc_type.upper() == "GLOBAL":
-            #     local_schema.flow_col = None
-            #     local_schema.intensity_col = None
+            if assoc_type.upper() == "GLOBAL":
+                local_schema.flow_col = None
+                local_schema.intensity_col = None
             
             pl_df = pl.from_pandas(df_payload)
             exprs = self.math_engine.compile_ast(local_schema)

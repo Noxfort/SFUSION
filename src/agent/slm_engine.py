@@ -52,7 +52,7 @@ class SLMEngine:
         except Exception as e:
             logger.error(f"SLMEngine: Failed to load model: {e}")
 
-    def discover_schema(self, raw_content: str, source_name: str) -> Optional[KinematicMap]:
+    def discover_schema(self, raw_content: str, source_name: str, assoc_type: str = "LOCAL") -> Optional[KinematicMap]:
         """
         Extracts kinematic column names from the raw JSON/CSV payload using strictly JSON output.
         """
@@ -97,7 +97,7 @@ class SLMEngine:
             logger.error(f"SLMEngine: Failed to load prompt from {prompt_path}: {e}")
             return None
 
-        prompt = prompt_template.replace("{source_name}", source_name).replace("{content_str}", content_str)
+        prompt = prompt_template.replace("{source_name}", source_name).replace("{content_str}", content_str).replace("{assoc_type}", assoc_type)
 
 
         try:

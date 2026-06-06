@@ -211,7 +211,11 @@ class ETLWorker(QRunnable):
                     raw_text_decoded = raw_content.decode('utf-8', errors='ignore')
                     logging.info(f"ETLWorker: Discovering Schema for '{source_name}' using file '{first_file_name}'")
                     
-                    folder_schema = transformer.discover_schema(raw_text_decoded, source_name)
+                    assoc_type_str = getattr(source, 'association_type', "LOCAL")
+                    if hasattr(assoc_type_str, 'value'):
+                        assoc_type_str = assoc_type_str.value
+                    
+                    folder_schema = transformer.discover_schema(raw_text_decoded, source_name, assoc_type_str)
                     schema_registry[source_name] = folder_schema
                 except Exception as e:
                     logging.error(f"ETLWorker: Failed to discover schema for {source_name}: {e}")
