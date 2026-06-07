@@ -3,6 +3,7 @@ import logging
 import json
 from typing import Optional
 from src.core.schemas import KinematicMap
+from src.slm.slm_output_parser import SLMOutputParser
 
 try:
     from llama_cpp import Llama
@@ -59,22 +60,11 @@ class SLMEngine:
         except Exception as e:
             logger.error(f"SLMEngine: Failed to load model: {e}")
 
-    def discover_schema(self, raw_content: str, source_name: str, assoc_type: str = "LOCAL") -> Optional[KinematicMap]:
+    def _build_prompt(self, raw_content: str, source_name: str, assoc_type: str) -> Optional[str]:
         """
-        Extracts kinematic column names from the raw JSON/CSV payload using strictly JSON output.
+        Builds the full prompt string by loading the template, extracting available
+        columns from the raw content, and injecting all variables.
         """
-        if self.llm is None:
-            return None
-
-        # Load schema JSON constraint
-        schema_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'kinematic_schema.json')
-        try:
-            with open(schema_path, 'r', encoding='utf-8') as f:
-                json_schema = json.load(f)
-        except Exception as e:
-            logger.error(f"SLMEngine: Failed to load schema from {schema_path}: {e}")
-            json_schema = {"required": ["speed_col", "flow_col", "intensity_col", "distance_col", "time_col", "occupancy_col"]}
-
         try:
             content_str = raw_content.decode('utf-8', errors='ignore')
         except Exception:
@@ -82,8 +72,7 @@ class SLMEngine:
             
         # Programmatically extract keys to help the SLM
         try:
-            import json as _json
-            parsed_data = _json.loads(content_str)
+            parsed_data = json.loads(content_str)
             
             def get_keys(d, prefix=''):
                 keys = []
@@ -128,8 +117,27 @@ class SLMEngine:
             logger.error(f"SLMEngine: Failed to load prompt from {prompt_path}: {e}")
             return None
 
-        prompt = prompt_template.replace("{source_name}", source_name).replace("{content_str}", content_str).replace("{assoc_type}", assoc_type)
+        return prompt_template.replace("{source_name}", source_name).replace("{content_str}", content_str).replace("{assoc_type}", assoc_type)
 
+    def discover_schema(self, raw_content: str, source_name: str, assoc_type: str = "LOCAL") -> Optional[KinematicMap]:
+        """
+        Extracts kinematic column names from the raw JSON/CSV payload using strictly JSON output.
+        """
+        if self.llm is None:
+            return None
+
+        # Load schema JSON constraint
+        schema_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'kinematic_schema.json')
+        try:
+            with open(schema_path, 'r', encoding='utf-8') as f:
+                json_schema = json.load(f)
+        except Exception as e:
+            logger.error(f"SLMEngine: Failed to load schema from {schema_path}: {e}")
+            json_schema = {"required": ["speed_col", "flow_col", "intensity_col", "distance_col", "time_col", "occupancy_col"]}
+
+        prompt = self._build_prompt(raw_content, source_name, assoc_type)
+        if prompt is None:
+            return None
 
         try:
             temp = self.config.get("temperature", 0.0)
@@ -156,14 +164,11 @@ class SLMEngine:
             slm_logger.info(f"Hardware Post-Inference: {get_hardware_telemetry()}")
             slm_logger.info(f"Raw Output Length: {len(output_text)} chars")
             
-            if not output_text.startswith("<think>"):
-                output_text = "<think>\n" + output_text
-                
-            import re
-            # Extract thinking content for structured logging
-            think_match = re.search(r'<think>(.*?)</think>', output_text, flags=re.DOTALL)
-            if think_match:
-                think_content = think_match.group(1).strip()
+            # --- Delegate parsing to SLMOutputParser (SRP) ---
+            think_content, data = SLMOutputParser.parse(output_text)
+            
+            # --- Log thinking content ---
+            if think_content:
                 logger.info(
                     f"\n===========================================================\n"
                     f"🧠 SLM THINKING REASONING: [{source_name}]\n"
@@ -173,36 +178,8 @@ class SLMEngine:
                 )
                 slm_logger.debug(f"Thinking Block:\n{think_content}")
             else:
-                logger.warning(f"SLMEngine: No <think> block detected for {source_name}.")
-                slm_logger.warning("No <think> block detected.")
-            
-            # Remove the <think> block to extract only the payload mapping
-            content_without_think = re.sub(r'<think>.*?</think>', '', output_text, flags=re.DOTALL).strip()
-            
-            data = {}
-            # Try parsing as JSON first
-            json_match = re.search(r'\{.*\}', content_without_think, flags=re.DOTALL)
-            if json_match:
-                try:
-                    parsed_json = json.loads(json_match.group(0))
-                    for k, v in parsed_json.items():
-                        if v is not None and str(v).strip().upper() not in ["NULL", "NONE", ""]:
-                            data[k] = str(v).strip()
-                except json.JSONDecodeError:
-                    logger.warning(f"SLMEngine: Failed to parse JSON for {source_name}. Fallback to line parsing.")
-            
-            # Fallback line parsing (KEY=VALUE) just in case
-            if not data:
-                for line in content_without_think.split('\n'):
-                    line = line.strip()
-                    if '=' in line:
-                        key, val = line.split('=', 1)
-                        key = key.strip()
-                        val = val.strip()
-                        # Clean quotes if any
-                        val = val.strip('",\'')
-                        if val.upper() not in ["NULL", "NONE", ""]:
-                            data[key] = val
+                logger.warning(f"SLMEngine: No thinking content detected for {source_name}.")
+                slm_logger.warning("No thinking content detected.")
 
             logger.info(
                 f"\n🎯 EXTRACTED SCHEMA: [{source_name}]\n"
