@@ -85,6 +85,35 @@ class SLMEngine:
         except Exception:
             content_str = str(raw_content)
             
+        # Programmatically extract keys to help the SLM
+        try:
+            import json as _json
+            parsed_data = _json.loads(content_str)
+            
+            def get_keys(d, prefix=''):
+                keys = []
+                if isinstance(d, dict):
+                    for k, v in d.items():
+                        full_key = f"{prefix}.{k}" if prefix else k
+                        keys.append(full_key)
+                        keys.extend(get_keys(v, full_key))
+                elif isinstance(d, list) and len(d) > 0:
+                    keys.extend(get_keys(d[0], prefix))
+                return keys
+            
+            if isinstance(parsed_data, list) and len(parsed_data) > 0:
+                available_keys = get_keys(parsed_data[0])
+            else:
+                available_keys = get_keys(parsed_data)
+                
+            available_keys_str = ", ".join(sorted(list(set(available_keys))))
+            content_str = f"Available Columns in Dataset: [{available_keys_str}]\n\n{content_str}"
+        except Exception:
+            # Fallback for CSV or non-JSON
+            first_line = content_str.split('\n')[0].strip()
+            if ',' in first_line:
+                content_str = f"Available Columns in Dataset: [{first_line}]\n\n{content_str}"
+            
         # Send the whole file context to fully utilize the 16k context window of Phi-4
         # We limit the raw text size to ~50,000 chars (~13k tokens) to prevent llama.cpp ValueError 
         # (exceeding 16384 context window crashes the C++ backend)

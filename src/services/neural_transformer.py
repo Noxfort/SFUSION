@@ -77,6 +77,8 @@ class NeuralTransformer:
                         logging.warning(f"NeuralTransformer: SLM missed speed_col and (distance_col + time_col) for LOCAL sensor '{folder_name}'. Physics might fail.")
                     if not schema.intensity_col and not schema.occupancy_col:
                         logging.warning(f"NeuralTransformer: SLM missed intensity_col and occupancy_col for LOCAL sensor '{folder_name}'. Physics might fail.")
+                    if not schema.flow_col:
+                        logging.warning(f"NeuralTransformer: SLM returned flow_col=null for LOCAL sensor '{folder_name}'. Check SLM thinking logs to see if a candidate was rejected.")
                 
                 # Cache the result for this sensor folder
                 self._schema_cache[folder_name] = schema
