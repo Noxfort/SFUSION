@@ -1,0 +1,4 @@
+{
+  "GLOBAL": "This sensor ({source_name}) is GLOBAL. You MUST find ONLY 'speed_col'. Set 'flow_col', 'intensity_col', and 'occupancy_col' to null. Do NOT map flow, intensity, or occupancy for this sensor.",
+  "LOCAL": "This sensor ({source_name}) is LOCAL — it measures a specific point in the road network. You MUST search for ALL THREE variables: speed_col, flow_col, and intensity_col. If a variable is not available in the columns, set it to null, but try your best to find all three."
+}

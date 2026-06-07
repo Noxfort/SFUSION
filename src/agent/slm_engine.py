@@ -117,7 +117,25 @@ class SLMEngine:
             logger.error(f"SLMEngine: Failed to load prompt from {prompt_path}: {e}")
             return None
 
-        return prompt_template.replace("{source_name}", source_name).replace("{content_str}", content_str).replace("{assoc_type}", assoc_type)
+        # Load pre-digested association instructions from external config (OCP)
+        assoc_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'assoc_instructions.json')
+        try:
+            with open(assoc_path, 'r', encoding='utf-8') as f:
+                assoc_templates = json.load(f)
+        except Exception as e:
+            logger.warning(f"SLMEngine: Failed to load {assoc_path}: {e}. Using fallback.")
+            assoc_templates = {}
+        
+        assoc_key = assoc_type.upper()
+        assoc_template = assoc_templates.get(assoc_key, 
+            f"This sensor ({source_name}) is {assoc_key}. Search for all applicable traffic variables.")
+        assoc_instructions = assoc_template.replace("{source_name}", source_name)
+
+        return (prompt_template
+                .replace("{source_name}", source_name)
+                .replace("{content_str}", content_str)
+                .replace("{assoc_type}", assoc_type)
+                .replace("{assoc_instructions}", assoc_instructions))
 
     def discover_schema(self, raw_content: str, source_name: str, assoc_type: str = "LOCAL") -> Optional[KinematicMap]:
         """
