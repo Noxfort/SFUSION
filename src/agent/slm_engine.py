@@ -75,18 +75,22 @@ class SLMEngine:
             parsed_data = json.loads(content_str)
             
             def get_keys(d, prefix=''):
-                keys = []
+                keys = set()
                 if isinstance(d, dict):
                     for k, v in d.items():
                         full_key = f"{prefix}.{k}" if prefix else k
-                        keys.append(full_key)
-                        keys.extend(get_keys(v, full_key))
-                elif isinstance(d, list) and len(d) > 0:
-                    keys.extend(get_keys(d[0], prefix))
-                return keys
+                        keys.add(full_key)
+                        keys.update(get_keys(v, full_key))
+                elif isinstance(d, list):
+                    for item in d:
+                        keys.update(get_keys(item, prefix))
+                return list(keys)
             
-            if isinstance(parsed_data, list) and len(parsed_data) > 0:
-                available_keys = get_keys(parsed_data[0])
+            if isinstance(parsed_data, list):
+                available_keys = set()
+                for item in parsed_data:
+                    available_keys.update(get_keys(item))
+                available_keys = list(available_keys)
             else:
                 available_keys = get_keys(parsed_data)
                 
