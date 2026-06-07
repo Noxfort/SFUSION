@@ -37,22 +37,20 @@ class MathEngine:
     @staticmethod
     def compile_ast(schema: KinematicMap) -> List[pl.Expr]:
         """
-        Generates the Abstract Syntax Tree (Polars Expressions) for the three physical variables.
-        Implements the Fundamental Equation of Traffic Flow: q (flow) = k (density) * v (speed)
+        Generates the Abstract Syntax Tree (Polars Expressions) for the physical variables.
+        Reads keys and normalizes columns. Physics calculations are deferred to the aggregation phase.
         """
         exprs = []
         logger.debug("Compiling Computational Graph (AST) from KinematicMap...")
 
-        # Helper function for mathematically safe division in AST to avoid ZeroDivisionError
         def safe_div(num_expr: pl.Expr, den_expr: pl.Expr) -> pl.Expr:
             return pl.when(den_expr == 0.0).then(pl.lit(None)).otherwise(num_expr / den_expr)
             
-        # Helper to treat columns strictly as numeric tensors
         def num_col(col_name: str) -> pl.Expr:
             return pl.col(col_name).cast(pl.Float64, strict=False)
         
         # =========================================================================
-        # 1. SPEED / VELOCITY (v = ds/dt OR v = q/k)
+        # 1. SPEED / VELOCITY (Normalized)
         # =========================================================================
         speed_expr = None
         if schema.speed_col:
@@ -61,45 +59,28 @@ class MathEngine:
         elif schema.distance_col and schema.time_col:
             logger.debug("-> Compiling Kinematic Derivative: speed = distance / time")
             speed_expr = safe_div(num_col(schema.distance_col), num_col(schema.time_col))
-        elif schema.flow_col and schema.intensity_col:
-            logger.debug("-> Compiling Speed from Fundamental Relation: speed = flow / intensity")
-            speed_expr = safe_div(num_col(schema.flow_col), num_col(schema.intensity_col))
 
         if speed_expr is None: speed_expr = pl.lit(None)
         exprs.append(speed_expr.alias("speed_val"))
 
         # =========================================================================
-        # 2. FLOW / VOLUME (q = k * v)
+        # 2. FLOW / VOLUME (Normalized)
         # =========================================================================
         flow_expr = None
         if schema.flow_col:
             flow_expr = num_col(schema.flow_col)
             logger.debug(f"-> Mapping Flow directly from column '{schema.flow_col}'.")
-        elif schema.intensity_col and speed_expr is not None:
-            logger.debug("-> Compiling Flow from Fundamental Relation: flow = intensity * speed")
-            flow_expr = num_col(schema.intensity_col) * speed_expr
-        elif schema.intensity_col and (schema.distance_col and schema.time_col):
-            logger.debug("-> Compiling Flow: flow = intensity * (distance / time)")
-            v_expr = safe_div(num_col(schema.distance_col), num_col(schema.time_col))
-            flow_expr = num_col(schema.intensity_col) * v_expr
 
         if flow_expr is None: flow_expr = pl.lit(None)
         exprs.append(flow_expr.alias("flow_val"))
 
         # =========================================================================
-        # 3. INTENSITY / DENSITY (k = q / v OR derived from Occupancy)
+        # 3. INTENSITY / DENSITY (Normalized)
         # =========================================================================
         intensity_expr = None
         if schema.intensity_col:
             intensity_expr = num_col(schema.intensity_col)
             logger.debug("-> Mapping Intensity directly from column.")
-        elif flow_expr is not None and speed_expr is not None:
-            logger.debug("-> Compiling Intensity from Fundamental Relation: intensity = flow / speed")
-            intensity_expr = safe_div(flow_expr, speed_expr)
-        elif flow_expr is not None and (schema.distance_col and schema.time_col):
-            logger.debug("-> Compiling Intensity: intensity = flow / (distance / time)")
-            v_expr = safe_div(num_col(schema.distance_col), num_col(schema.time_col))
-            intensity_expr = safe_div(flow_expr, v_expr)
         elif schema.occupancy_col:
             logger.debug("-> Compiling Intensity proportional to Occupancy.")
             intensity_expr = num_col(schema.occupancy_col)
@@ -113,16 +94,16 @@ class MathEngine:
     def compile_aggregations(columns: List[str]) -> List[pl.Expr]:
         """
         Creates aggregation expressions for a DataFrame containing multiple vehicle events.
-        Calculates Space Mean Speed (Harmonic Mean) for physics accuracy.
+        Calculates Space Mean Speed (Harmonic Mean), Flow (Count / Time) and Intensity (Flow / Speed) 
+        for physics accuracy on microscopic data.
         """
         agg_exprs = []
         
         # 1. Space Mean Speed (Harmonic Mean: N / sum(1/v))
+        hm_expr = pl.lit(None)
         if "speed_val" in columns:
             v_col = pl.col("speed_val").drop_nulls()
             
-            # Harmonic Mean: N / sum(1/v). If v=0, we ignore it in denominator. 
-            # If ALL speeds are 0, sum(1/v) becomes 0, which would cause division by zero (Infinity).
             den_sum = (1.0 / pl.when(v_col == 0.0).then(None).otherwise(v_col)).sum()
             
             hm_expr = (
@@ -130,19 +111,41 @@ class MathEngine:
                 .then(
                     pl.when(den_sum > 0.0)
                     .then(v_col.count() / den_sum)
-                    .otherwise(0.0) # If all speeds are 0, return 0 instead of Infinity
+                    .otherwise(0.0)
                 )
                 .otherwise(None)
             )
             agg_exprs.append(hm_expr.alias("speed_val"))
         
-        # 2. Flow (Sum of flows/counts)
-        if "flow_val" in columns:
-            agg_exprs.append(pl.col("flow_val").sum().alias("flow_val"))
+        # 2. Flow (q = Count / Time OR Sum of explicit flow)
+        final_flow = pl.lit(None)
+        if "event_timestamp" in columns:
+            ts = pl.col("event_timestamp").cast(pl.Datetime, strict=False)
+            time_span_hours = (ts.max() - ts.min()).dt.total_milliseconds() / 3600000.0
+            time_span_hours = pl.when((time_span_hours > 0.0) & time_span_hours.is_not_null()).then(time_span_hours).otherwise(1.0)
+            
+            micro_flow = pl.count() / time_span_hours
+            
+            if "flow_val" in columns:
+                # Use explicit flow if provided, else fall back to micro_flow
+                final_flow = pl.when(pl.col("flow_val").drop_nulls().count() > 0).then(pl.col("flow_val").sum()).otherwise(micro_flow)
+            else:
+                final_flow = micro_flow
+            agg_exprs.append(final_flow.alias("flow_val"))
+        else:
+            if "flow_val" in columns:
+                final_flow = pl.col("flow_val").sum()
+                agg_exprs.append(final_flow.alias("flow_val"))
         
-        # 3. Intensity (Mean)
+        # 3. Intensity (k = q / v OR Mean of explicit intensity)
         if "intensity_val" in columns:
-            agg_exprs.append(pl.col("intensity_val").mean().alias("intensity_val"))
+            derived_intensity = pl.when(hm_expr.is_not_null() & (hm_expr > 0.0)).then(final_flow / hm_expr).otherwise(0.0)
+            final_intensity = pl.when(pl.col("intensity_val").drop_nulls().count() > 0).then(pl.col("intensity_val").mean()).otherwise(derived_intensity)
+            agg_exprs.append(final_intensity.alias("intensity_val"))
+        else:
+            # If intensity_val isn't even in columns, we still derive it if we can
+            derived_intensity = pl.when(hm_expr.is_not_null() & (hm_expr > 0.0)).then(final_flow / hm_expr).otherwise(0.0)
+            agg_exprs.append(derived_intensity.alias("intensity_val"))
         
         # 4. Keep essential metadata
         if "event_timestamp" in columns:
