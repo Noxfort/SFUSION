@@ -150,7 +150,7 @@ class SLMEngine:
             start_t = time.time()
             response = self.llm(
                 prompt,
-                max_tokens=2048,
+                max_tokens=4096,
                 temperature=0.1,
                 repeat_penalty=1.1,
                 stop=["--- END OF INSTRUCTIONS ---"], # Stop if it starts hallucinating prompt

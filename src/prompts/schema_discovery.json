@@ -61,6 +61,7 @@
     "  - You MUST return the exact column name as it appears (case-sensitive).",
     "  - If a variable truly cannot be found or derived, set it to null.",
     "  - Never extract numerical values. Only column NAMES.",
+    "  - AMBIGUITY RESOLUTION: When two or more columns could represent the same variable (e.g., 'currentSpeed' vs 'currentSpeed_kmh'), do NOT just pick by name. Read the full payload context — look at which column actually carries meaningful data versus which one looks like an empty template or placeholder (zeroed, blank, or default). Choose the column that the rest of the payload relies on. Think like a physicist reading a lab report: the real measurement is the one with substance, not the empty label.",
     "",
     "=== SENSOR SOURCE ===",
     "Sensor: {source_name}",
