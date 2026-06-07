@@ -23,7 +23,7 @@ from PySide6.QtCore import QObject, Slot, Qt
 
 from src.domain.app_state import AppState
 from ui.sources.sources_panel import SourcesPanel
-from src.utils.i18n import I18nManager
+from src.utils.i18n import I18nManager, backend_i18n
 from src.domain.entities import DataSource
 
 
@@ -55,7 +55,7 @@ class SourcesController(QObject):
         self._view = view
         self._i18n = i18n
         
-        logging.info("SourcesController (Controller) initialized.")
+        logging.info(backend_i18n.t("controller.sources.init"))
 
     def setup_connections(self):
         """Connects Model and View signals."""
@@ -101,13 +101,13 @@ class SourcesController(QObject):
     @Slot(str)
     def _on_source_delete(self, source_id: str):
         """Called by View (right-click -> Delete). Updates the Model."""
-        logging.info(f"SourcesController: Delete requested for source: {source_id}")
+        logging.info(backend_i18n.t("controller.sources.delete", id=source_id))
         self._app_state.delete_data_source(source_id)
 
     @Slot(str)
     def _on_source_modify_type(self, source_id: str):
         """Called by View (right-click -> Modify). Updates the Model."""
-        logging.info(f"SourcesController: Modify type requested for source: {source_id}")
+        logging.info(backend_i18n.t("controller.sources.modify", id=source_id))
         self._app_state.toggle_source_association_type(source_id)
 
     # --- Private Slots (Listen to Model) ---

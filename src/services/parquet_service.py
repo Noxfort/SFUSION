@@ -19,6 +19,7 @@ import sqlite3
 import pandas as pd
 import json
 import logging
+from src.utils.i18n import backend_i18n
 import os
 from PySide6.QtCore import QObject, Slot, QRunnable, QThreadPool, Signal
 
@@ -51,11 +52,11 @@ class ParquetExportWorker(QRunnable):
                     "association_type": assoc_type
                 }
         except Exception as e:
-            logging.warning(f"ParquetExport: Could not load sensor mapping: {e}")
+            logging.error(f"ParquetExport: {backend_i18n.t('errors.parquet.mapping_load_failed', error=str(e))}")
 
     def _process_table(self, table_name: str, conn: sqlite3.Connection) -> pd.DataFrame:
         try:
-            logging.info(f"ParquetExport: Unpacking '{table_name}'...")
+            logging.info(backend_i18n.t("parquet.unpacking", table=table_name))
             query = f"SELECT event_timestamp, sensor_id, data_payload FROM {table_name}"
             df = pd.read_sql_query(query, conn)
             
@@ -129,15 +130,15 @@ class ParquetExportWorker(QRunnable):
             return df[final_cols]
 
         except Exception as e:
-            logging.error(f"ParquetExport: Error in {table_name}: {e}")
+            logging.error(f"ParquetExport: {backend_i18n.t('errors.parquet.table_error', table=table_name, error=str(e))}")
             return pd.DataFrame()
 
     @Slot()
     def run(self):
-        logging.info(f"ParquetExport: Executing clean Medallion export for '{self.db_path}'...")
+        logging.info(backend_i18n.t("parquet.exec_medallion", db=self.db_path))
         
         if not os.path.exists(self.db_path):
-            self.signals.error.emit("DB file not found")
+            self.signals.error.emit(backend_i18n.t("errors.parquet.db_not_found", path=self.db_path))
             return
 
         if self.output_path:
@@ -164,20 +165,20 @@ class ParquetExportWorker(QRunnable):
             valid_dfs = [d for d in dfs if not d.empty]
             
             if valid_dfs:
-                logging.info("ParquetExport: Merging datasets...")
+                logging.info(backend_i18n.t("parquet.merging"))
                 full_df = pd.concat(valid_dfs, ignore_index=True)
                 full_df.sort_values(by='event_timestamp', inplace=True)
                 
                 full_df.to_parquet(final_path, index=False, compression='snappy')
                 
-                logging.info(f"ParquetExport: SUCCESS. Saved unified dataset: {final_path}")
+                logging.info(backend_i18n.t("parquet.success", path=final_path))
             else:
-                logging.warning("ParquetExport: No data found in any section.")
+                logging.warning(f"ParquetExport: {backend_i18n.t('warnings.parquet.no_data')}")
 
             self.signals.finished.emit()
 
         except Exception as e:
-            logging.error(f"ParquetExport: Critical Error: {e}", exc_info=True)
+            logging.error(f"ParquetExport: {backend_i18n.t('errors.parquet.critical_error', error=str(e))}", exc_info=True)
             self.signals.error.emit(str(e))
         finally:
             if conn: conn.close()
@@ -189,7 +190,7 @@ class ParquetService(QObject):
     def __init__(self):
         super().__init__()
         self._thread_pool = QThreadPool.globalInstance()
-        logging.info("ParquetService (Service) initialized.")
+        logging.info(backend_i18n.t("parquet.init"))
 
     @Slot(str, str)
     def export_db_to_parquet(self, db_path: str, output_path: str = None):

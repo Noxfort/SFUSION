@@ -19,6 +19,7 @@
 # Date: November 2025
 
 import logging
+from src.utils.i18n import backend_i18n
 from PySide6.QtCore import QObject, Signal 
 from .entities import MapNode, MapEdge, DataSource, AssociationType
 
@@ -89,7 +90,7 @@ class AppState(QObject):
         self._edges = edges
         self._nodes_by_id = {node.id: node for node in nodes}
         self._edges_by_id = {edge.id: edge for edge in edges}
-        logging.info(f"AppState: Map data updated. {len(nodes)} nodes, {len(edges)} edges.")
+        logging.info(backend_i18n.t("appstate.map.set", nodes=len(nodes), edges=len(edges)))
         self.map_data_loaded.emit()
         self._check_and_emit_savable_state() 
 
@@ -125,15 +126,15 @@ class AppState(QObject):
         element = self.get_node_by_id(element_id) or self.get_edge_by_id(element_id)
         if element:
             element.real_name = real_name if real_name else None
-            logging.info(f"AppState: 'real_name' updated for '{element_id}'")
+            logging.info(backend_i18n.t("appstate.element.update_name", id=element_id))
         else:
-            logging.warning(f"AppState: Attempted to update unknown element: '{element_id}'")
+            logging.warning(f"AppState: {backend_i18n.t('appstate.element.update_name_fail', element=element_id)}")
 
     # --- Data Source Methods ---
 
     def add_data_source(self, source: DataSource):
         if source.path in self._sources_by_path:
-            logging.warning(f"AppState: Data source '{source.path}' already exists.")
+            logging.warning(f"AppState: {backend_i18n.t('appstate.source.add_fail', source=source.path)}")
             return
         self._data_sources.append(source)
         self._sources_by_path[source.path] = source
@@ -158,11 +159,11 @@ class AppState(QObject):
                 source.association_type = AssociationType(assoc_type.upper())
                 source.associated_element_id = None
                 
-                logging.info(f"AppState: Association of '{source.name}' set to '{assoc_type}'.")
+                logging.info(backend_i18n.t("appstate.source.set_type", name=source.name, type=assoc_type))
                 self.data_association_changed.emit(source.path, source.association_type.value)
                 self._check_and_emit_savable_state() 
             except ValueError:
-                logging.error(f"AppState: Attempted to set invalid type: {assoc_type}")
+                logging.error(f"AppState: {backend_i18n.t('appstate.source.set_type_fail', assoc_type=assoc_type)}")
 
     # --- Association Mode Logic ---
     
@@ -178,30 +179,30 @@ class AppState(QObject):
         if self._is_in_association_mode:
             return
         if not self._selected_source_path:
-            logging.warning("AppState: Attempted to enter association mode without a selected source.")
+            logging.warning(f"AppState: {backend_i18n.t('appstate.assoc.enter_fail')}")
             return
             
         source = self._get_selected_source()
         if source and source.associated_element_id:
-            logging.warning(f"AppState: Source '{source.name}' already associated. Cancel the association first.")
+            logging.warning(f"AppState: {backend_i18n.t('appstate.assoc.enter_fail_used', source=source.name)}")
             self.set_selected_data_source(None) 
             return
 
         self._is_in_association_mode = True
         self.association_mode_changed.emit(True)
-        logging.info("AppState: Association mode ENABLED.")
+        logging.info(backend_i18n.t("appstate.assoc.enter"))
 
     def exit_association_mode(self):
         if not self._is_in_association_mode:
             return
         self._is_in_association_mode = False
         self.association_mode_changed.emit(False)
-        logging.info("AppState: Association mode DISABLED.")
+        logging.info(backend_i18n.t("appstate.assoc.exit"))
 
     def associate_selected_source_to_element(self, element_id: str):
         source = self._get_selected_source()
         if not source:
-            logging.error("AppState: Attempted to associate, but no source was selected.")
+            logging.error(f"AppState: {backend_i18n.t('appstate.assoc.associate_fail')}")
             self.exit_association_mode()
             return
         
@@ -217,12 +218,12 @@ class AppState(QObject):
         e_id_to_associate = ids_to_associate[0]
         
         if source.associated_element_id:
-             logging.warning(f"AppState: Source '{source.name}' was already associated. Ignoring.")
+             logging.warning(f"AppState: {backend_i18n.t('appstate.assoc.enter_fail_used', source=source.name)}")
         else:
             source.associated_element_id = e_id_to_associate
             source.association_type = AssociationType.LOCAL 
             
-            logging.info(f"AppState: Source '{source.name}' associated to element '{e_id_to_associate}'.")
+            logging.info(backend_i18n.t("appstate.assoc.associated", name=source.name, id=e_id_to_associate))
             self.data_association_changed.emit(source.path, e_id_to_associate)
 
         self.exit_association_mode()
@@ -233,12 +234,12 @@ class AppState(QObject):
     def delete_data_source(self, source_id: str):
         source = self._sources_by_path.get(source_id)
         if not source:
-            logging.warning(f"AppState: Attempted to delete unknown source: {source_id}")
+            logging.warning(f"AppState: {backend_i18n.t('appstate.source.delete_fail', source=source_id)}")
             return
 
         self._data_sources.remove(source)
         del self._sources_by_path[source_id]
-        logging.info(f"AppState: Data source '{source.name}' removed.")
+        logging.info(backend_i18n.t("appstate.source.deleted", name=source.name))
 
         if self._selected_source_path == source_id:
             self.set_selected_data_source(None)
@@ -256,7 +257,7 @@ class AppState(QObject):
             source.association_type = AssociationType.GLOBAL
         
         source.associated_element_id = None
-        logging.info(f"AppState: Association of '{source.name}' changed to '{source.association_type.value}'.")
+        logging.info(backend_i18n.t("appstate.source.toggled", name=source.name, type=source.association_type.value))
         self.data_association_changed.emit(source.path, source.association_type.value)
         self._check_and_emit_savable_state() 
 
@@ -307,7 +308,7 @@ class AppState(QObject):
             source = self.get_data_source_by_id(source_id)
             if source:
                 source.associated_element_id = None
-                logging.info(f"AppState: Source '{source.name}' released from '{element_id}'.")
+                logging.info(backend_i18n.t("appstate.editor.unassign", name=source.name, id=element_id))
                 self.data_association_changed.emit(source.path, "LOCAL") 
                 has_changed = True
         
@@ -315,12 +316,12 @@ class AppState(QObject):
             source = self.get_data_source_by_id(source_id)
             if source:
                 if source.associated_element_id and source.associated_element_id != element_id:
-                    logging.warning(f"AppState: Source '{source.name}' moved from '{source.associated_element_id}' to '{element_id}'.")
+                    logging.warning(backend_i18n.t("appstate.editor.move", name=source.name, old_id=source.associated_element_id, new_id=element_id))
                 
                 source.associated_element_id = element_id
                 source.association_type = AssociationType.LOCAL  # Ensures correct type
                 
-                logging.info(f"AppState: Source '{source.name}' associated to '{element_id}' (via Editor).")
+                logging.info(backend_i18n.t("appstate.editor.assign", name=source.name, id=element_id))
                 self.data_association_changed.emit(source.path, element_id)
                 has_changed = True
         

@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 import polars as pl
 import logging
+from src.utils.i18n import backend_i18n
 from typing import List, Optional, Dict
 
 from src.agent.slm_engine import SLMEngine
@@ -32,13 +33,13 @@ class NeuralTransformer:
     def initialize_encoder(self):
         """Loads the SLM Engine model (~5GB, instant startup with GPU)."""
         if not self.slm_engine:
-            logging.info("NeuralTransformer: Initializing SLMEngine...")
+            logging.info(backend_i18n.t("neural.init_engine"))
             self.slm_engine = SLMEngine()
 
     def cleanup_encoder(self):
         """Unloads the SLM Engine from memory."""
         if self.slm_engine:
-            logging.info("NeuralTransformer: Unloading SLMEngine...")
+            logging.info(backend_i18n.t("neural.unload_engine"))
             if hasattr(self.slm_engine, 'unload'):
                 self.slm_engine.unload()
             del self.slm_engine
@@ -52,10 +53,10 @@ class NeuralTransformer:
         """
         # Check cache first — avoid redundant inference for the same sensor type
         if folder_name in self._schema_cache:
-            logging.info(f"NeuralTransformer: Schema cache HIT for '{folder_name}'. Skipping inference.")
+            logging.info(backend_i18n.t("neural.cache_hit", sensor=folder_name))
             return self._schema_cache[folder_name]
         
-        logging.info(f"NeuralTransformer: Discovering schema for sensor folder '{folder_name}'...")
+        logging.info(backend_i18n.t("neural.discover_schema", sensor=folder_name))
         
         global_summary = (
             f"SENSOR FOLDER: {folder_name}\n\n"
@@ -74,17 +75,17 @@ class NeuralTransformer:
                 # --- PÓS-SLM VALIDATION ---
                 if assoc_type == "LOCAL":
                     if not schema.speed_col and (not schema.distance_col or not schema.time_col):
-                        logging.warning(f"NeuralTransformer: SLM missed speed_col and (distance_col + time_col) for LOCAL sensor '{folder_name}'. Physics might fail.")
+                        logging.warning(backend_i18n.t('warnings.neural.missing_speed_dist_time', sensor=folder_name))
                     if not schema.intensity_col and not schema.occupancy_col:
-                        logging.warning(f"NeuralTransformer: SLM missed intensity_col and occupancy_col for LOCAL sensor '{folder_name}'. Physics might fail.")
+                        logging.warning(backend_i18n.t('warnings.neural.missing_intensity_occ', sensor=folder_name))
                     if not schema.flow_col:
-                        logging.warning(f"NeuralTransformer: SLM returned flow_col=null for LOCAL sensor '{folder_name}'. Check SLM thinking logs to see if a candidate was rejected.")
+                        logging.warning(backend_i18n.t('warnings.neural.missing_flow', sensor=folder_name))
                 
                 # Cache the result for this sensor folder
                 self._schema_cache[folder_name] = schema
             return schema
         
-        logging.warning("NeuralTransformer: SLMEngine is not initialized.")
+        logging.warning(backend_i18n.t('warnings.neural.engine_not_init'))
         return None
 
     def apply_physics(self, events: List[dict], schema: Optional[KinematicMap], assoc_type: str = "LOCAL") -> List[dict]:
@@ -158,7 +159,7 @@ class NeuralTransformer:
             
             df_payload = pl_df.to_pandas()
         else:
-            logging.warning("NeuralTransformer: No valid KinematicMap provided. Using null defaults.")
+            logging.warning(backend_i18n.t('warnings.neural.no_kinematic_map'))
         
         # Guarantee fundamental kinematic variables exist in the payload
         required_cols = ['speed_val', 'flow_val', 'intensity_val', 'lat', 'lon']
@@ -188,10 +189,7 @@ class NeuralTransformer:
             sensor_id = row.get('sensor_id', events[0]['sensor_id'])
             
             if missing_kinematics:
-                logging.warning(
-                    f"NeuralTransformer: [PHYSICS FAILED] Could not calculate {missing_kinematics} "
-                    f"for sensor '{sensor_id}'. Missing physical variables or incomplete schema."
-                )
+                logging.warning(backend_i18n.t("neural.physics_failed", vars=missing_kinematics, sensor=sensor_id))
             
             # Save ONLY calculated physics + location columns in the payload.
             # Raw data is already preserved compressed in raw_data_storage.

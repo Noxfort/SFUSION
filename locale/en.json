@@ -6,22 +6,20 @@
         "action_open_map_tip": "Load a map file (.net.xml)",
         "action_add_source": "Add Source",
         "action_add_source_tip": "Add a data source folder (Waze, TomTom, Camera)",
-        
         "action_open_project": "Open Project",
         "action_open_project_tip": "Open an existing project file (.sfm.json)",
         "action_save_project": "Save Project",
         "action_save_project_tip": "Save the current project (.sfm.json)",
-        
         "action_save_config": "Generate Dataset",
         "action_save_config_tip": "Run ingestion pipeline and export final .parquet for AI",
-        
         "action_settings": "Settings",
         "action_settings_tip": "Open application settings (Language, etc.)",
-
         "status_ready": "Ready",
         "status_map_loaded": "Map '{name}' loaded.",
         "status_source_added": "Data source '{name}' added.",
-        "status_config_saved": "Dataset '{name}' generated successfully."
+        "status_config_saved": "Dataset '{name}' generated successfully.",
+        "status_project_loaded": "Project '{name}' loaded.",
+        "status_project_saved": "Project '{name}' saved."
     },
     "dialog": {
         "open_map": {
@@ -77,7 +75,6 @@
         "button_save": "Save",
         "button_close": "Close"
     },
-    
     "settings_dialog": {
         "title": "Settings",
         "language": {
@@ -86,7 +83,6 @@
         },
         "button_ok": "Save",
         "button_cancel": "Cancel",
-        
         "restart_required": {
             "title": "Restart Required",
             "body": "The language change will be applied after restarting the application."

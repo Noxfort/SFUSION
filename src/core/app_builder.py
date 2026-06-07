@@ -110,16 +110,17 @@ class AppBuilder:
         language = self.config.get("language")
 
         if not locale_path or not language:
-            logging.critical("Critical Configuration Error!")
-            config_path = self.config.config_path 
-            logging.critical(f"  File: {config_path}")
-            logging.critical("  The 'locale_path' and 'language' keys are missing or null.")
-            logging.critical("  Please check your 'config/settings.json'.")
+            config_path = self.config.config_path
+            logging.critical(backend_i18n.t("app.config_critical", path=config_path))
             raise ValueError(
                 f"Configuration 'locale_path' or 'language' not found in {config_path}"
             )
-        
         self.i18n = I18nManager(locale_path, language) 
+        
+        # Load backend language
+        from src.utils.i18n import backend_i18n
+        backend_i18n.language = language
+        backend_i18n.load_locale(language)
 
     def _build_models(self):
         self.app_state = AppState()

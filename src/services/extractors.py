@@ -14,6 +14,7 @@ import json
 import csv
 import io
 import logging
+from src.utils.i18n import backend_i18n
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -107,6 +108,6 @@ class UniversalExtractor(BaseExtractor):
                     continue
 
         except Exception as e:
-            logging.error(f"UniversalExtractor: Error processing {filename}: {e}")
+            logging.error(f"UniversalExtractor: {backend_i18n.t('errors.extractors.processing_failed', file=filename, error=str(e))}")
             
         return results

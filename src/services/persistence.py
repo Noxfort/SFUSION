@@ -22,6 +22,7 @@ import logging
 import sqlite3
 import json
 from PySide6.QtCore import QObject, Slot, QRunnable, QThreadPool
+from src.utils.i18n import backend_i18n
 
 from src.domain.app_state import AppState
 
@@ -39,19 +40,19 @@ class PersistenceWorker(QRunnable):
     @Slot()
     def run(self):
         """Executes the saving logic."""
-        logging.info(f"PersistenceWorker: Starting save to '{self.file_path}'...")
+        logging.info(backend_i18n.t("persistence.worker.init", path=self.file_path))
         try:
             nodes = self._app_state.get_all_nodes()
             edges = self._app_state.get_all_edges()
             sources = self._app_state.get_all_data_sources()
             
             self._create_database_and_save(nodes, edges, sources)
-            logging.info(f"PersistenceWorker: Configuration successfully saved to {self.file_path}")
+            logging.info(backend_i18n.t("persistence.worker.success", path=self.file_path))
 
         except sqlite3.Error as e:
-            logging.error(f"PersistenceWorker: SQLite error while saving to {self.file_path}: {e}")
+            logging.error(backend_i18n.t("persistence.worker.sqlite_error", path=self.file_path, e=str(e)))
         except Exception as e:
-            logging.error(f"PersistenceWorker: Unexpected failure while saving configuration: {e}", exc_info=True)
+            logging.error(backend_i18n.t("persistence.worker.error", e=str(e)), exc_info=True)
 
     def _create_database_and_save(self, nodes, edges, sources):
         """
@@ -166,7 +167,7 @@ class PersistenceService(QObject):
         super().__init__()
         self._app_state = app_state 
         self._thread_pool = QThreadPool.globalInstance()
-        logging.info("PersistenceService (Service) initialized.")
+        logging.info(backend_i18n.t("persistence.init"))
 
     @Slot(str)
     def save_configuration(self, file_path: str):
@@ -174,12 +175,12 @@ class PersistenceService(QObject):
         Starts a PersistenceWorker in a separate thread.
         """
         if not file_path:
-            logging.warning("PersistenceService: 'save_configuration' called with empty path.")
+            logging.warning(backend_i18n.t('persistence.save.no_path'))
             return
             
         if not file_path.endswith(".db"):
             file_path += ".db"
-            logging.info(f"PersistenceService: File name corrected to '{file_path}'")
+            logging.info(backend_i18n.t("persistence.save.fix_path", path=file_path))
 
         worker = PersistenceWorker(file_path, self._app_state)
         

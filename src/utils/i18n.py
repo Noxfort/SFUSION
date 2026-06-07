@@ -59,11 +59,21 @@ class I18nManager:
                 self._translations = self._flatten_dict(nested_data) 
                 
             logging.info(f"Translations loaded from: {file_path}")
-        except FileNotFoundError:
-            logging.error(f"Translation file not found: {file_path}")
+        except FileNotFoundError as e:
+            try:
+                from src.utils.i18n import backend_i18n
+                error_msg = backend_i18n.t("errors.i18n.load_failed", lang=language, error="File not found")
+            except Exception:
+                error_msg = f"Translation file not found: {file_path}"
+            logging.error(error_msg)
             self._translations = {}
-        except json.JSONDecodeError:
-            logging.error(f"Error decoding JSON: {file_path}")
+        except json.JSONDecodeError as e:
+            try:
+                from src.utils.i18n import backend_i18n
+                error_msg = backend_i18n.t("errors.i18n.load_failed", lang=language, error=str(e))
+            except Exception:
+                error_msg = f"Error decoding JSON: {file_path}"
+            logging.error(error_msg)
             self._translations = {}
 
     def t(self, key: str, **kwargs) -> str:
@@ -82,3 +92,6 @@ class I18nManager:
         except Exception as e:
             logging.error(f"Error formatting key '{key}': {e}")
             return key
+
+# Global instance for backend translations.
+backend_i18n = I18nManager(locale_dir="locale_backend", language="pt_BR")

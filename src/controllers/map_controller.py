@@ -19,6 +19,7 @@
 # Date: November 2025
 
 import logging
+from src.utils.i18n import backend_i18n
 from PySide6.QtCore import QObject, Slot, Qt
 
 from src.domain.app_state import AppState
@@ -91,7 +92,7 @@ class MapController(QObject):
             if node:
                 self._info_controller.show_for_node(node)
             else:
-                logging.warning(f"MapController: Node ID '{node_id}' not found in AppState.")
+                logging.warning(f"MapController: {backend_i18n.t('warnings.map_controller.node_not_found', node=node_id)}")
 
     @Slot(str)
     def _on_edge_clicked(self, edge_id: str):
@@ -136,7 +137,7 @@ class MapController(QObject):
             if edge:
                 self._info_controller.show_for_edge(edge)
             else:
-                logging.warning(f"MapController: Edge ID '{edge_id}' not found in AppState.")
+                logging.warning(f"MapController: {backend_i18n.t('warnings.map_controller.edge_not_found', edge=edge_id)}")
 
     @Slot()
     def _on_empty_space_clicked(self):

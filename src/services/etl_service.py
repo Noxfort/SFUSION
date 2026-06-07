@@ -23,6 +23,7 @@ import hashlib
 import sqlite3
 import json
 import logging
+from src.utils.i18n import backend_i18n
 import zlib
 import concurrent.futures
 import threading
@@ -54,7 +55,7 @@ class ETLWorker(QRunnable):
                     hash_md5.update(chunk)
             return hash_md5.hexdigest()
         except Exception as e:
-            logging.error(f"ETLWorker: Failed to hash {file_path}: {e}")
+            logging.error(f"ETLWorker: {backend_i18n.t('errors.etl.hash_failed', file=file_path, error=str(e))}")
             return ""
 
     def _get_section_table_name(self, source_name: str) -> str | None:
@@ -149,12 +150,12 @@ class ETLWorker(QRunnable):
                         conn.commit()
 
                 except sqlite3.Error as e:
-                    logging.error(f"ETLWorker [Thread {source_name}]: DB Error on {filename_only}: {e}")
+                    logging.error(f"ETLWorker [Thread {source_name}]: {backend_i18n.t('errors.etl.db_error', file=filename_only, error=str(e))}")
                 except Exception as e:
-                    logging.error(f"ETLWorker [Thread {source_name}]: Error processing {filename_only}: {e}")
+                    logging.error(f"ETLWorker [Thread {source_name}]: {backend_i18n.t('errors.etl.process_error', file=filename_only, error=str(e))}")
 
         except Exception as e:
-            logging.error(f"ETLWorker: Critical Thread Error for {source_name}: {e}")
+            logging.error(f"ETLWorker: {backend_i18n.t('errors.etl.critical_thread_error', source=source_name, error=str(e))}")
         finally:
             if conn: conn.close()
             
@@ -162,7 +163,7 @@ class ETLWorker(QRunnable):
 
     @Slot()
     def run(self):
-        logging.info(f"ETLWorker: Starting parallel ingestion (ZLIB) into '{self.db_path}'...")
+        logging.info(backend_i18n.t("etl.start_ingestion", db=self.db_path))
         
         sources = self._app_state.get_all_data_sources()
         if not sources:
@@ -180,7 +181,7 @@ class ETLWorker(QRunnable):
             # =========================================================
             # PASS 1: SCHEMA DISCOVERY (SEQUENTIAL, PROTECTING VRAM)
             # =========================================================
-            logging.info("ETLWorker: [PASS 1] Starting SLM Schema Discovery Phase...")
+            logging.info(backend_i18n.t("etl.pass1_start"))
             schema_registry = {}
             
             for source in sources:
@@ -209,7 +210,7 @@ class ETLWorker(QRunnable):
                         raw_content = f.read()
                     
                     raw_text_decoded = raw_content.decode('utf-8', errors='ignore')
-                    logging.info(f"ETLWorker: Discovering Schema for '{source_name}' using file '{first_file_name}'")
+                    logging.info(backend_i18n.t("etl.discover_schema", source=source_name, file=first_file_name))
                     
                     assoc_type_str = getattr(source, 'association_type', "LOCAL")
                     if hasattr(assoc_type_str, 'value'):
@@ -218,7 +219,7 @@ class ETLWorker(QRunnable):
                     folder_schema = transformer.discover_schema(raw_text_decoded, source_name, assoc_type_str)
                     schema_registry[source_name] = folder_schema
                 except Exception as e:
-                    logging.error(f"ETLWorker: Failed to discover schema for {source_name}: {e}")
+                    logging.error(f"ETLWorker: {backend_i18n.t('errors.etl.schema_discovery_failed', source=source_name, error=str(e))}")
                     schema_registry[source_name] = None
                     
             if not self._is_running: return
@@ -226,7 +227,7 @@ class ETLWorker(QRunnable):
             # =========================================================
             # PASS 2: PHYSICS MATH & DATABASE INGESTION PHASE (PARALLEL)
             # =========================================================
-            logging.info("ETLWorker: [PASS 2] Starting Parallel Math Physics & Ingestion Phase...")
+            logging.info(backend_i18n.t("etl.pass2_start"))
             
             max_threads = max(1, len(sources))
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
@@ -243,17 +244,14 @@ class ETLWorker(QRunnable):
                         total_files += f_count
                         total_extracted_events += e_count
                     except Exception as e:
-                        logging.error(f"ETLWorker: Parallel Execution Error: {e}")
+                        logging.error(f"ETLWorker: {backend_i18n.t('errors.etl.parallel_execution_error', error=str(e))}")
 
-            logging.info(
-                f"ETLWorker: Complete. {total_files} files ingested. "
-                f"{total_extracted_events} events extracted."
-            )
+            logging.info(backend_i18n.t("etl.complete", files=total_files, events=total_extracted_events))
             
             self.signals.finished.emit()
 
         except Exception as e:
-            logging.error(f"ETLWorker: Critical Failure: {e}", exc_info=True)
+            logging.error(f"ETLWorker: {backend_i18n.t('errors.etl.critical_failure', error=str(e))}", exc_info=True)
             self.signals.error.emit(str(e))
         finally:
             transformer.cleanup_encoder()
@@ -274,7 +272,7 @@ class ETLService(QObject):
         super().__init__()
         self._app_state = app_state
         self._thread_pool = QThreadPool.globalInstance()
-        logging.info("ETLService (Service) initialized.")
+        logging.info(backend_i18n.t("etl.init"))
 
     @Slot(str)
     def start_ingestion(self, db_path: str):

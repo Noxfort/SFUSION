@@ -23,6 +23,7 @@ import polars as pl
 from typing import List
 
 from src.core.schemas import KinematicMap
+from src.utils.i18n import backend_i18n
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class MathEngine:
         Reads keys and normalizes columns. Physics calculations are deferred to the aggregation phase.
         """
         exprs = []
-        logger.debug("Compiling Computational Graph (AST) from KinematicMap...")
+        logger.debug(backend_i18n.t("math_engine.compiling_ast"))
 
         def safe_div(num_expr: pl.Expr, den_expr: pl.Expr) -> pl.Expr:
             return pl.when(den_expr == 0.0).then(pl.lit(None)).otherwise(num_expr / den_expr)
@@ -55,9 +56,9 @@ class MathEngine:
         speed_expr = None
         if schema.speed_col:
             speed_expr = num_col(schema.speed_col)
-            logger.debug("-> Mapping Speed directly from column.")
+            logger.debug(backend_i18n.t("math_engine.mapping_speed_direct"))
         elif schema.distance_col and schema.time_col:
-            logger.debug("-> Compiling Kinematic Derivative: speed = distance / time")
+            logger.debug(backend_i18n.t("math_engine.compiling_speed_derivative"))
             speed_expr = safe_div(num_col(schema.distance_col), num_col(schema.time_col))
 
         if speed_expr is None: speed_expr = pl.lit(None)
@@ -69,7 +70,7 @@ class MathEngine:
         flow_expr = None
         if schema.flow_col:
             flow_expr = num_col(schema.flow_col)
-            logger.debug(f"-> Mapping Flow directly from column '{schema.flow_col}'.")
+            logger.debug(backend_i18n.t("math_engine.mapping_flow_direct", col=schema.flow_col))
 
         if flow_expr is None: flow_expr = pl.lit(None)
         exprs.append(flow_expr.alias("flow_val"))
@@ -80,9 +81,9 @@ class MathEngine:
         intensity_expr = None
         if schema.intensity_col:
             intensity_expr = num_col(schema.intensity_col)
-            logger.debug("-> Mapping Intensity directly from column.")
+            logger.debug(backend_i18n.t("math_engine.mapping_intensity_direct"))
         elif schema.occupancy_col:
-            logger.debug("-> Compiling Intensity proportional to Occupancy.")
+            logger.debug(backend_i18n.t("math_engine.compiling_intensity_occupancy"))
             intensity_expr = num_col(schema.occupancy_col)
             
         if intensity_expr is None: intensity_expr = pl.lit(None)

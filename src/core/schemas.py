@@ -20,6 +20,7 @@
 
 from pydantic import BaseModel, Field
 from typing import Optional
+from src.utils.i18n import backend_i18n
 
 class KinematicMap(BaseModel):
     """
@@ -31,34 +32,34 @@ class KinematicMap(BaseModel):
     # --- Direct Variables ---
     speed_col: Optional[str] = Field(
         None, 
-        description="Name of the column containing direct speed measurements. Leave null if it doesn't exist."
+        description=backend_i18n.t("schemas.desc_speed")
     )
     flow_col: Optional[str] = Field(
         None, 
-        description="Name of the column containing direct traffic flow or vehicle count measurements (flow/volume). Leave null if it doesn't exist."
+        description=backend_i18n.t("schemas.desc_flow")
     )
     intensity_col: Optional[str] = Field(
         None, 
-        description="Name of the column containing direct density or intensity measurements. Leave null if it doesn't exist."
+        description=backend_i18n.t("schemas.desc_intensity")
     )
 
     # --- Base Kinematic Variables (for Derivation) ---
     distance_col: Optional[str] = Field(
         None, 
-        description="Name of the column representing spatial distance or section length."
+        description=backend_i18n.t("schemas.desc_distance")
     )
     time_col: Optional[str] = Field(
         None, 
-        description="Name of the column representing elapsed time, duration, or time variance."
+        description=backend_i18n.t("schemas.desc_time")
     )
     occupancy_col: Optional[str] = Field(
         None, 
-        description="Name of the column representing road occupancy (percentage of time the sensor was occupied)."
+        description=backend_i18n.t("schemas.desc_occupancy")
     )
 
     # --- Confidence Metadata ---
     confidence_score: Optional[float] = Field(
         None,
-        description="Average cosine similarity confidence of the semantic matching (0.0 to 1.0)."
+        description=backend_i18n.t("schemas.desc_confidence")
     )
 

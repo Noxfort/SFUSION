@@ -6,22 +6,20 @@
         "action_open_map_tip": "Carregar um ficheiro de mapa (.net.xml)",
         "action_add_source": "Adicionar Fonte",
         "action_add_source_tip": "Adicionar uma pasta de fonte de dados (Waze, TomTom, Câmera)",
-        
         "action_open_project": "Abrir Projeto",
         "action_open_project_tip": "Abrir um ficheiro de projeto (.sfm.json)",
         "action_save_project": "Salvar Projeto",
         "action_save_project_tip": "Salvar o projeto atual (.sfm.json)",
-        
         "action_save_config": "Gerar Dataset",
         "action_save_config_tip": "Iniciar o pipeline de ingestão e gerar o arquivo .parquet final para a IA",
-        
         "action_settings": "Configurações",
         "action_settings_tip": "Abrir as configurações da aplicação (Idioma, etc.)",
-
         "status_ready": "Pronto",
         "status_map_loaded": "Mapa '{name}' carregado.",
         "status_source_added": "Fonte de dados '{name}' adicionada.",
-        "status_config_saved": "Dataset '{name}' gerado com sucesso."
+        "status_config_saved": "Dataset '{name}' gerado com sucesso.",
+        "status_project_loaded": "Projeto '{name}' carregado.",
+        "status_project_saved": "Projeto '{name}' salvo."
     },
     "dialog": {
         "open_map": {
@@ -77,7 +75,6 @@
         "button_save": "Salvar",
         "button_close": "Fechar"
     },
-    
     "settings_dialog": {
         "title": "Configurações",
         "language": {
@@ -86,7 +83,6 @@
         },
         "button_ok": "Salvar",
         "button_cancel": "Cancelar",
-        
         "restart_required": {
             "title": "Reinício Necessário",
             "body": "A alteração de idioma será aplicada após reiniciar a aplicação."

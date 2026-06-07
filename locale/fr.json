@@ -6,22 +6,20 @@
         "action_open_map_tip": "Charger un fichier de carte (.net.xml)",
         "action_add_source": "Ajouter Source",
         "action_add_source_tip": "Ajouter un dossier de source de données (Waze, TomTom, Caméra)",
-        
         "action_open_project": "Ouvrir Projet",
         "action_open_project_tip": "Ouvrir un fichier de projet (.sfm.json)",
         "action_save_project": "Enregistrer Projet",
         "action_save_project_tip": "Enregistrer le projet actuel (.sfm.json)",
-        
         "action_save_config": "Générer Dataset",
         "action_save_config_tip": "Exécuter le pipeline d'ingestion et exporter le fichier .parquet final pour l'IA",
-        
         "action_settings": "Paramètres",
         "action_settings_tip": "Ouvrir les paramètres de l'application (Langue, etc.)",
-
         "status_ready": "Prêt",
         "status_map_loaded": "Carte '{name}' chargée.",
         "status_source_added": "Source de données '{name}' ajoutée.",
-        "status_config_saved": "Dataset '{name}' généré avec succès."
+        "status_config_saved": "Dataset '{name}' généré avec succès.",
+        "status_project_loaded": "Projet '{name}' chargé.",
+        "status_project_saved": "Projet '{name}' enregistré."
     },
     "dialog": {
         "open_map": {
@@ -77,7 +75,6 @@
         "button_save": "Enregistrer",
         "button_close": "Fermer"
     },
-    
     "settings_dialog": {
         "title": "Paramètres",
         "language": {
@@ -86,7 +83,6 @@
         },
         "button_ok": "Enregistrer",
         "button_cancel": "Annuler",
-        
         "restart_required": {
             "title": "Redémarrage Requis",
             "body": "Le changement de langue sera appliqué après le redémarrage de l'application."

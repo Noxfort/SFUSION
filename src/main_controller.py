@@ -19,6 +19,7 @@
 # Date: November 2025
 
 import logging
+from src.utils.i18n import backend_i18n
 import os
 from PySide6.QtCore import QObject, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox
@@ -67,7 +68,7 @@ class MainController(QObject):
         self._temp_db_path = None
         self._target_parquet_path = None
         
-        logging.info("MainController (Controller) initialized.")
+        logging.info(backend_i18n.t("controller.main.init"))
 
     def setup_connections(self):
         """Connects the MainWindow signals to this controller's slots."""
@@ -100,7 +101,7 @@ class MainController(QObject):
             self._current_path = os.path.dirname(file_path)
             try:
                 self._project.load_project(file_path)
-                self._view.show_status_message(f"Project '{os.path.basename(file_path)}' loaded.")
+                self._view.show_status_message(t("main_window.status_project_loaded", name=os.path.basename(file_path)))
             except Exception as e:
                 self._view.show_error_message(t("dialog.error.title"), t("dialog.error.generic_load", error=str(e)))
 
@@ -114,7 +115,7 @@ class MainController(QObject):
             self._current_path = os.path.dirname(file_path)
             try:
                 self._project.save_project(file_path)
-                self._view.show_status_message(f"Project '{os.path.basename(file_path)}' saved.")
+                self._view.show_status_message(t("main_window.status_project_saved", name=os.path.basename(file_path)))
             except Exception as e:
                 self._view.show_error_message(t("dialog.error.title"), t("dialog.error.generic_save", error=str(e)))
     
@@ -168,9 +169,9 @@ class MainController(QObject):
         # Change filter to suggest Parquet
         file_path, _ = QFileDialog.getSaveFileName(
             self._view,
-            "Save Traffic Dataset", # Could be i18n
+            t("dialog.save_config.title"),
             self._current_path,
-            "Parquet Dataset (*.parquet)"
+            t("dialog.save_config.filter")
         )
         
         if file_path:
@@ -184,7 +185,7 @@ class MainController(QObject):
             base_name = os.path.basename(file_path)
             self._temp_db_path = os.path.join(self._current_path, f".temp_sfusion_{base_name}.db")
 
-            logging.info(f"MainController: Pipeline init. Target: {self._target_parquet_path}, Staging: {self._temp_db_path}")
+            logging.info(backend_i18n.t("main.pipeline_init", target=self._target_parquet_path, staging=self._temp_db_path))
 
             try:
                 # Lock UI to prevent multiple clicks
@@ -198,7 +199,7 @@ class MainController(QObject):
                 # Step 2: Start ETL on TEMP DB
                 self._etl.start_ingestion(self._temp_db_path)
                 
-                self._view.show_status_message("Processing Raw Data (Staging)...")
+                self._view.show_status_message(backend_i18n.t("main.status_processing"))
                 
             except Exception as e:
                 # Unlock UI if there is an error
@@ -210,8 +211,8 @@ class MainController(QObject):
     @Slot(str)
     def _on_ingestion_finished(self, db_path: str):
         """Automated Step 3: Trigger Parquet Export to the user's path."""
-        logging.info("MainController: Staging complete. Exporting to final Parquet...")
-        self._view.show_status_message("Optimizing & Exporting to Parquet...")
+        logging.info(backend_i18n.t("main.staging_complete"))
+        self._view.show_status_message(backend_i18n.t("main.status_exporting"))
         
         # Use the stored target path
         try:
@@ -225,21 +226,21 @@ class MainController(QObject):
     @Slot()
     def _on_export_finished(self):
         """Automated Step 4: Cleanup."""
-        logging.info("MainController: Export complete. Cleaning up staging DB...")
+        logging.info(backend_i18n.t("main.export_complete"))
         
         if self._temp_db_path and os.path.exists(self._temp_db_path):
             try:
                 os.remove(self._temp_db_path)
-                logging.info(f"MainController: Deleted temp file {self._temp_db_path}")
+                logging.info(backend_i18n.t("main.temp_db_deleted", file=self._temp_db_path))
             except OSError as e:
-                logging.warning(f"MainController: Failed to delete temp DB: {e}")
+                logging.warning(backend_i18n.t("main.temp_db_delete_failed", error=str(e)))
 
         final_name = os.path.basename(self._target_parquet_path) if self._target_parquet_path else "File"
-        self._view.show_status_message(f"Success! Generated: {final_name}")
+        self._view.show_status_message(backend_i18n.t("main.status_success", name=final_name))
         
         # Unlock UI when finished
         self._view.set_savable_state(True)
         if self._view.sources_panel:
             self._view.sources_panel.set_savable_state(True)
         
-        QMessageBox.information(self._view, "Success", f"Traffic Dataset generated successfully:\n{self._target_parquet_path}")
+        QMessageBox.information(self._view, backend_i18n.t("main.success_title"), backend_i18n.t("main.success_body", path=self._target_parquet_path))

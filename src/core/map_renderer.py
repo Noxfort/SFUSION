@@ -19,6 +19,7 @@
 # Date: November 2025
 
 import logging
+from src.utils.i18n import backend_i18n
 # Required imports for map drawing
 from PySide6.QtGui import QPen, QBrush, QColor, QPainterPath, QPainterPathStroker
 from PySide6.QtCore import Qt, Slot, QPointF
@@ -94,7 +95,7 @@ class MapRenderer:
 
     def draw_map(self):
         """Reads data from AppState and draws the map on the scene."""
-        logging.info("MapRenderer: Reading map data from AppState...")
+        logging.info(backend_i18n.t("renderer.map.draw.init"))
         self._scene.clear()
         
         self._drawable_items_by_id.clear()
@@ -104,7 +105,7 @@ class MapRenderer:
         edges = self._app_state.get_all_edges()
 
         if not nodes and not edges:
-            logging.warning("MapRenderer: No map data to draw.")
+            logging.warning(f"MapRenderer: {backend_i18n.t('renderer.map.draw.no_data')}")
             return
         
         # Draw ROADS first (they stay in the background)
@@ -121,7 +122,7 @@ class MapRenderer:
             self._draw_node(node)
             node_count += 1
             
-        logging.info(f"MapRenderer: Map drawn. {node_count} nodes, {edge_count} (of {len(edges)}) edges rendered.")
+        logging.info(backend_i18n.t("renderer.map.draw.success", nodes=node_count, edges=edge_count, total_edges=len(edges)))
 
         self._view.fit_map_in_view()
         self._view.set_zoom_limits(self._min_zoom, self._max_zoom)
@@ -199,7 +200,7 @@ class MapRenderer:
 
         items_to_highlight = self._drawable_items_by_id.get(element_id)
         if not items_to_highlight:
-            logging.warning(f"MapRenderer: Could not find item '{element_id}' to highlight.")
+            logging.warning(f"MapRenderer: {backend_i18n.t('renderer.highlight.fail', element=element_id)}")
             return
 
         color_key = "assoc" if is_associated else "free"

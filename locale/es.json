@@ -6,22 +6,20 @@
         "action_open_map_tip": "Cargar un archivo de mapa (.net.xml)",
         "action_add_source": "Añadir Fuente",
         "action_add_source_tip": "Añadir una carpeta de fuente de datos",
-        
         "action_open_project": "Abrir Proyecto",
         "action_open_project_tip": "Abrir un archivo de proyecto (.sfm.json)",
         "action_save_project": "Guardar Proyecto",
         "action_save_project_tip": "Guardar el proyecto actual (.sfm.json)",
-        
         "action_save_config": "Generar Dataset",
         "action_save_config_tip": "Ejecutar pipeline de ingestión y exportar .parquet final para IA",
-        
         "action_settings": "Configuración",
         "action_settings_tip": "Abrir la configuración de la aplicación (Idioma, etc.)",
-
         "status_ready": "Listo",
         "status_map_loaded": "Mapa '{name}' cargado.",
         "status_source_added": "Fuente de datos '{name}' añadida.",
-        "status_config_saved": "Dataset '{name}' generado con éxito."
+        "status_config_saved": "Dataset '{name}' generado con éxito.",
+        "status_project_loaded": "Proyecto '{name}' cargado.",
+        "status_project_saved": "Proyecto '{name}' guardado."
     },
     "dialog": {
         "open_map": {
@@ -77,7 +75,6 @@
         "button_save": "Guardar",
         "button_close": "Cerrar"
     },
-    
     "settings_dialog": {
         "title": "Configuración",
         "language": {
@@ -86,7 +83,6 @@
         },
         "button_ok": "Guardar",
         "button_cancel": "Cancelar",
-        
         "restart_required": {
             "title": "Reinicio Requerido",
             "body": "El cambio de idioma se aplicará después de reiniciar la aplicación."

@@ -22,6 +22,7 @@ import os
 import logging
 import pandas as pd
 from PySide6.QtCore import QObject, Slot, QRunnable, QThreadPool, Signal
+from src.utils.i18n import backend_i18n
 
 from src.domain.app_state import AppState
 from src.domain.entities import DataSource, AssociationType
@@ -44,18 +45,18 @@ class DataImportWorker(QRunnable):
         """
         Analyzes the folder, identifies file types and updates AppState.
         """
-        logging.info(f"DataImportWorker: Analyzing '{self.folder_path}'...")
+        logging.info(backend_i18n.t("data_importer.worker.init", path=self.folder_path))
         try:
             file_types = self._analyze_folder(self.folder_path)
             
             if not file_types:
-                logging.warning(f"DataImportWorker: No valid data sources found in {self.folder_path}")
+                logging.warning(backend_i18n.t('data_importer.worker.no_data', path=self.folder_path))
                 return
 
             try:
                 assoc_enum = AssociationType(self.assoc_type)
             except ValueError:
-                logging.error(f"DataImportWorker: Unknown association type '{self.assoc_type}'. Using UNASSOCIATED.")
+                logging.error(backend_i18n.t('data_importer.worker.unknown_type', type=self.assoc_type))
                 assoc_enum = AssociationType.UNASSOCIATED
 
             new_source = DataSource(
@@ -68,10 +69,10 @@ class DataImportWorker(QRunnable):
             
             self._app_state.add_data_source(new_source)
             
-            logging.info(f"DataImportWorker: Analysis complete for {self.folder_path}. Types: {file_types}")
+            logging.info(backend_i18n.t("data_importer.worker.success", path=self.folder_path, types=file_types))
 
         except Exception as e:
-            logging.error(f"DataImportWorker: Failed to analyze {self.folder_path}: {e}", exc_info=True)
+            logging.error(backend_i18n.t("errors.data_importer.analysis_failed", error=str(e)), exc_info=True)
 
     def _analyze_folder(self, folder_path):
         """Scans the folder and returns the supported file types."""
@@ -90,10 +91,10 @@ class DataImportWorker(QRunnable):
                 elif file_lower.endswith((".xls", ".xlsx")):
                     types.add("Excel")
         except FileNotFoundError:
-            logging.error(f"DataImportWorker: Folder not found: {folder_path}")
+            logging.error(backend_i18n.t('errors.data_importer.folder_not_found', folder=folder_path))
             return []
         except NotADirectoryError:
-            logging.error(f"DataImportWorker: Path is not a directory: {folder_path}")
+            logging.error(backend_i18n.t('errors.data_importer.not_a_dir', folder=folder_path))
             return []
             
         return list(types)
@@ -108,7 +109,7 @@ class DataImporter(QObject):
         super().__init__()
         self._app_state = app_state 
         self._thread_pool = QThreadPool.globalInstance()
-        logging.info("DataImporter (Service) initialized.")
+        logging.info(backend_i18n.t("data_importer.init"))
 
     @Slot(str, str)
     def add_data_source(self, folder_path: str, assoc_type: str):
@@ -116,7 +117,7 @@ class DataImporter(QObject):
         Starts a DataImportWorker in a separate thread.
         """
         if not folder_path or not os.path.isdir(folder_path):
-            logging.warning(f"DataImporter: Invalid folder path provided: '{folder_path}'")
+            logging.warning(backend_i18n.t('data_importer.add_source.no_path', path=folder_path))
             return
 
         worker = DataImportWorker(folder_path, self._app_state, assoc_type) 

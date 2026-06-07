@@ -4,6 +4,7 @@ import json
 from typing import Optional
 from src.core.schemas import KinematicMap
 from src.slm.slm_output_parser import SLMOutputParser
+from src.utils.i18n import backend_i18n
 
 try:
     from llama_cpp import Llama
@@ -31,17 +32,17 @@ class SLMEngine:
                 loaded_config = json.load(f)
                 self.config.update(loaded_config)
         except Exception as e:
-            logger.warning(f"SLMEngine: Failed to load {config_path}, using defaults. Error: {e}")
+            logger.warning(backend_i18n.t("slm.config_load_failed", path=config_path, error=str(e)))
 
         self.model_path = model_path if model_path else self.config.get("model_path")
         self.llm = None
         
         if Llama is None:
-            logger.warning("llama-cpp-python is not installed. SLMEngine will be disabled.")
+            logger.warning(backend_i18n.t("slm.llama_not_installed"))
             return
 
         try:
-            logger.info(f"SLMEngine: Loading SLM from {self.model_path} with GPU offloading and TensorCores (Flash Attention)...")
+            logger.info(backend_i18n.t("slm.loading", path=self.model_path))
             slm_logger.info(f"--- INIT SLM ENGINE ---")
             slm_logger.info(f"Model Path: {self.model_path}")
             slm_logger.info(f"Config: {json.dumps(self.config)}")
@@ -55,10 +56,10 @@ class SLMEngine:
                 flash_attn=self.config.get("flash_attn", True),
                 verbose=self.config.get("verbose", False)
             )
-            logger.info("SLMEngine: Loaded successfully.")
+            logger.info(backend_i18n.t("slm.loaded"))
             slm_logger.info(f"Hardware After Load: {get_hardware_telemetry()}")
         except Exception as e:
-            logger.error(f"SLMEngine: Failed to load model: {e}")
+            logger.error(backend_i18n.t("slm.load_failed", error=str(e)))
 
     def _build_prompt(self, raw_content: str, source_name: str, assoc_type: str) -> Optional[str]:
         """
@@ -106,7 +107,7 @@ class SLMEngine:
         # We limit the raw text size to ~50,000 chars (~13k tokens) to prevent llama.cpp ValueError 
         # (exceeding 16384 context window crashes the C++ backend)
         if len(content_str) > 50000:
-            logger.warning(f"SLMEngine: File too large ({len(content_str)} chars). Truncating to 50KB to fit 16k KV Cache safely.")
+            logger.warning(backend_i18n.t("slm.file_too_large", size=len(content_str)))
             content_str = content_str[:50000]
 
         # Load prompt from JSON file
@@ -118,7 +119,7 @@ class SLMEngine:
                 if isinstance(prompt_template, list):
                     prompt_template = '\n'.join(prompt_template)
         except Exception as e:
-            logger.error(f"SLMEngine: Failed to load prompt from {prompt_path}: {e}")
+            logger.error(backend_i18n.t("slm.prompt_load_failed", path=prompt_path, error=str(e)))
             return None
 
         # Load pre-digested association instructions from external config (OCP)
@@ -127,7 +128,7 @@ class SLMEngine:
             with open(assoc_path, 'r', encoding='utf-8') as f:
                 assoc_templates = json.load(f)
         except Exception as e:
-            logger.warning(f"SLMEngine: Failed to load {assoc_path}: {e}. Using fallback.")
+            logger.warning(backend_i18n.t("slm.assoc_load_failed", path=assoc_path, error=str(e)))
             assoc_templates = {}
         
         assoc_key = assoc_type.upper()
@@ -154,7 +155,7 @@ class SLMEngine:
             with open(schema_path, 'r', encoding='utf-8') as f:
                 json_schema = json.load(f)
         except Exception as e:
-            logger.error(f"SLMEngine: Failed to load schema from {schema_path}: {e}")
+            logger.error(backend_i18n.t("slm.schema_load_failed", path=schema_path, error=str(e)))
             json_schema = {"required": ["speed_col", "flow_col", "intensity_col", "distance_col", "time_col", "occupancy_col"]}
 
         prompt = self._build_prompt(raw_content, source_name, assoc_type)
@@ -163,7 +164,7 @@ class SLMEngine:
 
         try:
             temp = self.config.get("temperature", 0.0)
-            logger.info(f"SLMEngine: Starting GPU inference for '{source_name}' (temperature={temp}, thinking activated)...")
+            logger.info(backend_i18n.t("slm.inference_start", source=source_name, temp=temp))
             slm_logger.info(f"\n--- INFERENCE START: {source_name} ---")
             slm_logger.info(f"Assoc Type: {assoc_type}")
             slm_logger.info(f"Hardware Pre-Inference: {get_hardware_telemetry()}")
@@ -191,24 +192,13 @@ class SLMEngine:
             
             # --- Log thinking content ---
             if think_content:
-                logger.info(
-                    f"\n===========================================================\n"
-                    f"🧠 SLM THINKING REASONING: [{source_name}]\n"
-                    f"===========================================================\n"
-                    f"{think_content}\n"
-                    f"==========================================================="
-                )
+                logger.info(backend_i18n.t("slm.thinking_reasoning", source=source_name, content=think_content))
                 slm_logger.debug(f"Thinking Block:\n{think_content}")
             else:
-                logger.warning(f"SLMEngine: No thinking content detected for {source_name}.")
+                logger.warning(backend_i18n.t("slm.no_thinking", source=source_name))
                 slm_logger.warning("No thinking content detected.")
 
-            logger.info(
-                f"\n🎯 EXTRACTED SCHEMA: [{source_name}]\n"
-                f"-----------------------------------------------------------\n"
-                f"{json.dumps(data, indent=2)}\n"
-                f"-----------------------------------------------------------"
-            )
+            logger.info(backend_i18n.t("slm.extracted_schema", source=source_name, content=json.dumps(data, indent=2)))
             slm_logger.info(f"Extracted Data:\n{json.dumps(data, indent=2)}")
             
             # --- TELEMETRIA DE FALHA DE EXTRAÇÃO ---
@@ -217,8 +207,7 @@ class SLMEngine:
             
             if missing_keys:
                 slm_logger.warning(
-                    f"[MISSING DATA] A SLM não conseguiu obter a informação (retornou null) "
-                    f"para as seguintes variáveis no sensor '{source_name}': {', '.join(missing_keys)}"
+                    backend_i18n.t("slm.missing_data", source=source_name, keys=', '.join(missing_keys))
                 )
             
             slm_logger.info(f"--- INFERENCE END: {source_name} ---")
@@ -236,7 +225,7 @@ class SLMEngine:
                 confidence_score=0.99 # Thinking mode yields higher confidence
             )
         except Exception as e:
-            logger.error(f"SLMEngine: Inference failed: {e}")
+            logger.error(backend_i18n.t("slm.inference_failed", error=str(e)))
             return None
 
     def unload(self):
@@ -252,6 +241,6 @@ class SLMEngine:
                 torch.cuda.empty_cache()
         except ImportError:
             pass
-        logger.info("SLMEngine: Model unloaded and RAM/VRAM released.")
+        logger.info(backend_i18n.t("slm.unloaded"))
         slm_logger.info("--- MODEL UNLOADED ---")
         slm_logger.info(f"Hardware After Unload: {get_hardware_telemetry()}")

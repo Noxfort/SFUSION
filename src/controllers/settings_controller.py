@@ -26,7 +26,7 @@ from PySide6.QtWidgets import QDialog, QMessageBox
 from ui.settings.settings_dialog import SettingsDialog
 from ui.main_window import MainWindow
 from src.utils.config import ConfigManager
-from src.utils.i18n import I18nManager
+from src.utils.i18n import I18nManager, backend_i18n
 
 
 class SettingsController(QObject):
@@ -59,7 +59,7 @@ class SettingsController(QObject):
         self._config = config
         self._i18n = i18n
         
-        logging.info("SettingsController (Controller) initialized.")
+        logging.info(backend_i18n.t("controller.settings.init"))
 
     @Slot()
     def show_settings_dialog(self):
@@ -78,7 +78,7 @@ class SettingsController(QObject):
             self._on_save(dialog)
         else:
             # 4. User clicked "Cancel"
-            logging.debug("SettingsController: Settings dialog cancelled.")
+            logging.debug(backend_i18n.t("controller.settings.cancelled"))
 
     def _on_save(self, dialog: SettingsDialog):
         """Reads data from the View and saves the configuration."""
@@ -92,16 +92,16 @@ class SettingsController(QObject):
         # --- Language Saving Logic ---
         if lang_changed:
             self._config.set("language", new_lang)
-            logging.info(f"SettingsController: Language changed to '{new_lang}'.")
+            logging.info(backend_i18n.t("controller.settings.lang_changed", lang=new_lang))
 
         # --- (Future: save other configs here) ---
         
         # 5. Save config.json to disk
         try:
             self._config.save_config()
-            logging.info("SettingsController: Settings saved to config/settings.json")
+            logging.info(backend_i18n.t("controller.settings.saved"))
         except Exception as e:
-            logging.error(f"SettingsController: Failed to save config.json: {e}")
+            logging.error(backend_i18n.t("controller.settings.save_failed", error=str(e)))
             self._view.show_error_message(
                 t("dialog.error.title"),
                 t("dialog.error.generic_save", error=str(e))

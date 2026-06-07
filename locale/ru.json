@@ -6,22 +6,20 @@
         "action_open_map_tip": "Загрузить файл карты (.net.xml)",
         "action_add_source": "Добавить Источник",
         "action_add_source_tip": "Добавить папку источника данных",
-        
         "action_open_project": "Открыть Проект",
         "action_open_project_tip": "Открыть файл проекта (.sfm.json)",
         "action_save_project": "Сохранить Проект",
         "action_save_project_tip": "Сохранить текущий проект (.sfm.json)",
-        
         "action_save_config": "Создать .db",
         "action_save_config_tip": "Создать .db файл для Synapse",
-        
         "action_settings": "Настройки",
         "action_settings_tip": "Открыть настройки приложения (Язык и т.д.)",
-
         "status_ready": "Готово",
         "status_map_loaded": "Карта '{name}' загружена.",
         "status_source_added": "Источник данных '{name}' добавлен.",
-        "status_config_saved": "Конфигурация '{name}' успешно сохранена."
+        "status_config_saved": "Конфигурация '{name}' успешно сохранена.",
+        "status_project_loaded": "Проект '{name}' загружен.",
+        "status_project_saved": "Проект '{name}' сохранен."
     },
     "dialog": {
         "open_map": {
@@ -77,7 +75,6 @@
         "button_save": "Сохранить",
         "button_close": "Закрыть"
     },
-    
     "settings_dialog": {
         "title": "Настройки",
         "language": {
@@ -86,7 +83,6 @@
         },
         "button_ok": "Сохранить",
         "button_cancel": "Отмена",
-        
         "restart_required": {
             "title": "Требуется Перезапуск",
             "body": "Изменение языка будет применено после перезапуска приложения."

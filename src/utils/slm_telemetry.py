@@ -1,5 +1,6 @@
 import os
 import logging
+from src.utils.i18n import backend_i18n
 import subprocess
 
 def setup_slm_logger():
@@ -24,13 +25,13 @@ def get_hardware_telemetry():
         import psutil
         process = psutil.Process(os.getpid())
         ram_usage = process.memory_info().rss / (1024 * 1024)
-        telemetry.append(f"RAM (CPU): {ram_usage:.2f} MB")
+        telemetry.append(backend_i18n.t("telemetry.ram_cpu", ram=ram_usage))
     except ImportError:
         # Fallback to standard library if psutil is not installed
         import resource
         # ru_maxrss is in kilobytes on Linux
         ram_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
-        telemetry.append(f"RAM (CPU Peak): {ram_usage:.2f} MB")
+        telemetry.append(backend_i18n.t("telemetry.ram_cpu_peak", ram=ram_usage))
 
     # 2. Real GPU VRAM Usage (using nvidia-smi as fallback for llama.cpp allocations)
     # We use nvidia-smi to get accurate VRAM since llama.cpp bypasses PyTorch
@@ -49,14 +50,14 @@ def get_hardware_telemetry():
                     process_vram_mb += float(mem.strip())
         
         if process_vram_mb > 0:
-            telemetry.append(f"VRAM (NVIDIA-SMI): {process_vram_mb:.2f} MB")
+            telemetry.append(backend_i18n.t("telemetry.vram_smi", vram=process_vram_mb))
         else:
             # If our PID isn't listed, maybe get total VRAM used generally
             smi_total = subprocess.check_output(
                 ['nvidia-smi', '--query-gpu=memory.used', '--format=csv,noheader,nounits'],
                 text=True
             ).strip().split('\n')[0]
-            telemetry.append(f"VRAM (Total Used): {float(smi_total):.2f} MB")
+            telemetry.append(backend_i18n.t("telemetry.vram_total", vram=float(smi_total)))
             
     except Exception:
         # Fallback to PyTorch if nvidia-smi fails
@@ -64,8 +65,8 @@ def get_hardware_telemetry():
             import torch
             if torch.cuda.is_available():
                 allocated = torch.cuda.memory_allocated() / (1024 * 1024)
-                telemetry.append(f"VRAM (Torch Alloc): {allocated:.2f} MB")
+                telemetry.append(backend_i18n.t("telemetry.vram_torch", vram=allocated))
         except ImportError:
             pass
 
-    return " | ".join(telemetry) if telemetry else "Hardware telemetry unavailable"
+    return " | ".join(telemetry) if telemetry else backend_i18n.t("telemetry.unavailable")

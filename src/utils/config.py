@@ -19,8 +19,10 @@
 # Date: November 2025
 
 import json
+import logging
 import os
 from typing import Any
+from src.utils.i18n import backend_i18n
 
 class ConfigManager:
     """
@@ -35,32 +37,27 @@ class ConfigManager:
         """
         self.config_path = config_path
         self._config_data = {}
-        # FIX: Changed "file" to "path" for consistency
-        print(f"ConfigManager: Initialized for path: {self.config_path}")
+        logging.info(backend_i18n.t("config.init", path=self.config_path))
 
     def load_config(self):
         """
         Loads the configuration file from disk into memory.
         """
         if not os.path.exists(self.config_path):
-            print(f"Warning: Config file not found at {self.config_path}. Using defaults.")
+            logging.warning(backend_i18n.t("config.load.not_found", path=self.config_path))
             self._config_data = {}
             return
 
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 self._config_data = json.load(f)
-            # FIX: Changed print message to be more consistent
-            print(f"ConfigManager: Configuration loaded from {self.config_path}")
+            logging.info(backend_i18n.t("config.load.success", path=self.config_path))
         except json.JSONDecodeError as e:
-            # FIX: Added robust error logging
-            print(f"CRITICAL: Failed to parse {self.config_path}: {e}. Using defaults.")
+            logging.critical(backend_i18n.t("config.load.parse_error", path=self.config_path, e=str(e)))
             self._config_data = {}
         except Exception as e:
-            # FIX: Added robust error logging
-            print(f"CRITICAL: Failed to read {self.config_path}: {e}. Using defaults.")
+            logging.critical(backend_i18n.t("config.load.read_error", path=self.config_path, e=str(e)))
             self._config_data = {}
-            # --- END FIX ---
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -92,8 +89,6 @@ class ConfigManager:
             
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(self._config_data, f, indent=4)
-            print(f"ConfigManager: Configuration saved to {self.config_path}")
+            logging.info(backend_i18n.t("config.save.success", path=self.config_path))
         except Exception as e:
-            # FIX: Added robust error logging
-            print(f"CRITICAL: Failed to write config to {self.config_path}: {e}")
-            # --- END FIX ---
+            logging.critical(backend_i18n.t("config.save.error", path=self.config_path, e=str(e)))

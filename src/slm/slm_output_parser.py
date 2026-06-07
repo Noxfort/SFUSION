@@ -26,6 +26,7 @@ import json
 import re
 import logging
 from typing import Dict, Optional, Tuple
+from src.utils.i18n import backend_i18n
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +148,7 @@ class SLMOutputParser:
         
         # Step 4: Fallback to line parsing if JSON failed
         if not data:
-            logger.warning("SLMOutputParser: JSON extraction failed. Attempting KEY=VALUE fallback.")
+            logger.warning(backend_i18n.t("slm.parser_json_failed"))
             data = cls.fallback_line_parse(raw_output)
         
         return thinking, data

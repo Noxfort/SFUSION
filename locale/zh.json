@@ -6,22 +6,20 @@
         "action_open_map_tip": "加载地图文件 (.net.xml)",
         "action_add_source": "添加数据源",
         "action_add_source_tip": "添加数据源文件夹",
-        
         "action_open_project": "打开项目",
         "action_open_project_tip": "打开一个现有的项目文件 (.sfm.json)",
         "action_save_project": "保存项目",
         "action_save_project_tip": "保存当前项目 (.sfm.json)",
-        
         "action_save_config": "生成 .db",
         "action_save_config_tip": "为 Synapse 生成 .db 文件",
-        
         "action_settings": "设置",
         "action_settings_tip": "打开应用程序设置 (语言等)",
-
         "status_ready": "准备就绪",
         "status_map_loaded": "地图 '{name}' 已加载。",
         "status_source_added": "数据源 '{name}' 已添加。",
-        "status_config_saved": "配置 '{name}' 已成功保存。"
+        "status_config_saved": "配置 '{name}' 已成功保存。",
+        "status_project_loaded": "项目 '{name}' 加载成功。",
+        "status_project_saved": "项目 '{name}' 保存成功。"
     },
     "dialog": {
         "open_map": {
@@ -77,7 +75,6 @@
         "button_save": "保存",
         "button_close": "关闭"
     },
-    
     "settings_dialog": {
         "title": "设置",
         "language": {
@@ -86,7 +83,6 @@
         },
         "button_ok": "保存",
         "button_cancel": "取消",
-        
         "restart_required": {
             "title": "需要重启",
             "body": "语言更改将在重启应用程序后生效。"

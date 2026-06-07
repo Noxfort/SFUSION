@@ -19,6 +19,7 @@
 # Date: November 2025
 
 import logging
+from src.utils.i18n import backend_i18n
 import json
 import dataclasses
 from enum import Enum
@@ -49,7 +50,7 @@ class ProjectSaveWorker(QRunnable):
     @Slot()
     def run(self):
         """Executes the save logic."""
-        logging.info(f"ProjectSaveWorker: Starting save to '{self.file_path}'...")
+        logging.info(backend_i18n.t("project.save.worker.init", path=self.file_path))
         try:
             # 1. Get all data from AppState
             nodes = self._app_state.get_all_nodes()
@@ -67,10 +68,10 @@ class ProjectSaveWorker(QRunnable):
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump(state_data, f, cls=ProjectDataEncoder, indent=2)
             
-            logging.info(f"ProjectSaveWorker: Project saved successfully to {self.file_path}")
+            logging.info(backend_i18n.t("project.save.worker.success", path=self.file_path))
 
         except Exception as e:
-            logging.error(f"ProjectSaveWorker: Unexpected failure saving project: {e}", exc_info=True)
+            logging.error(f"ProjectSaveWorker: {backend_i18n.t('project.save.worker.error', error=str(e))}", exc_info=True)
 
 
 class ProjectLoadWorker(QRunnable):
@@ -84,7 +85,7 @@ class ProjectLoadWorker(QRunnable):
     @Slot()
     def run(self):
         """Executes the load logic."""
-        logging.info(f"ProjectLoadWorker: Starting load from '{self.file_path}'...")
+        logging.info(backend_i18n.t("project.load.worker.init", path=self.file_path))
         try:
             # 1. Read the JSON file
             with open(self.file_path, 'r', encoding='utf-8') as f:
@@ -118,10 +119,10 @@ class ProjectLoadWorker(QRunnable):
             for s in sources:
                 self._app_state.add_data_source(s)
             
-            logging.info(f"ProjectLoadWorker: Project '{self.file_path}' loaded successfully.")
+            logging.info(backend_i18n.t("project.load.worker.success", path=self.file_path))
 
         except Exception as e:
-            logging.error(f"ProjectLoadWorker: Unexpected failure loading project: {e}", exc_info=True)
+            logging.error(f"ProjectLoadWorker: {backend_i18n.t('project.load.worker.error', error=str(e))}", exc_info=True)
 
 
 class ProjectService(QObject):
@@ -134,7 +135,7 @@ class ProjectService(QObject):
         super().__init__()
         self._app_state = app_state 
         self._thread_pool = QThreadPool.globalInstance()
-        logging.info("ProjectService (Service) initialized.")
+        logging.info(backend_i18n.t("project.init"))
 
     @Slot(str)
     def save_project(self, file_path: str):
@@ -142,7 +143,7 @@ class ProjectService(QObject):
         Starts a ProjectSaveWorker in a separate thread.
         """
         if not file_path:
-            logging.warning("ProjectService: 'save_project' called with empty path.")
+            logging.warning(f"ProjectService: {backend_i18n.t('project.save.no_path')}")
             return
             
         if not file_path.endswith(".sfm.json"):
@@ -157,7 +158,7 @@ class ProjectService(QObject):
         Starts a ProjectLoadWorker in a separate thread.
         """
         if not file_path:
-            logging.warning("ProjectService: 'load_project' called with empty path.")
+            logging.warning(f"ProjectService: {backend_i18n.t('project.load.no_path')}")
             return
 
         worker = ProjectLoadWorker(file_path, self._app_state)

@@ -22,6 +22,7 @@ import logging
 import gzip
 from lxml import etree
 from PySide6.QtCore import QObject, Slot, QRunnable, QThreadPool, Signal
+from src.utils.i18n import backend_i18n
 
 from src.domain.app_state import AppState
 from src.domain.entities import MapNode, MapEdge
@@ -39,21 +40,21 @@ class MapImportWorker(QRunnable):
     @Slot()
     def run(self):
         """Executes the map import."""
-        logging.info(f"MapImportWorker: Starting import of '{self.file_path}'...")
+        logging.info(backend_i18n.t("map_importer.worker.init", path=self.file_path))
         try:
             nodes, edges = self._parse_net_xml(self.file_path)
             
             if not nodes and not edges:
-                logging.warning(f"MapImportWorker: File '{self.file_path}' contained no nodes or edges.")
+                logging.warning(backend_i18n.t('map_importer.worker.no_data', path=self.file_path))
             
             self._app_state.set_map_data(nodes, edges)
             
-            logging.info(f"MapImportWorker: Import complete. {len(nodes)} nodes, {len(edges)} edges.")
+            logging.info(backend_i18n.t("map_importer.worker.success", nodes=len(nodes), edges=len(edges)))
 
         except etree.XMLSyntaxError as e:
-            logging.error(f"MapImportWorker: XML syntax error reading '{self.file_path}': {e}")
+            logging.error(backend_i18n.t("map_importer.worker.xml_error", path=self.file_path, e=str(e)))
         except Exception as e:
-            logging.error(f"MapImportWorker: Unexpected error importing map: {e}", exc_info=True)
+            logging.error(backend_i18n.t("map_importer.worker.error", e=str(e)), exc_info=True)
 
     def _parse_net_xml(self, file_path):
         """Reads the .net.xml (or .net.xml.gz) file and extracts data."""
@@ -110,9 +111,9 @@ class NetXMLParserTarget(object):
                         self._current_edge["shape"] = points
 
         except KeyError as e:
-            logging.warning(f"NetXMLParserTarget: Missing attribute in XML: {e} (Tag: {tag}, Attrs: {attrib})")
+            logging.warning(backend_i18n.t('warnings.map_importer.missing_attr', error=str(e), tag=tag, attrs=str(attrib)))
         except Exception as e:
-            logging.error(f"NetXMLParserTarget: Error in 'start' (Tag: {tag}): {e}")
+            logging.error(backend_i18n.t('errors.map_importer.start_error', tag=tag, error=str(e)))
 
 
     def end(self, tag):
@@ -146,7 +147,7 @@ class MapImporter(QObject):
         super().__init__()
         self._app_state = app_state
         self._thread_pool = QThreadPool.globalInstance()
-        logging.info("MapImporter (Service) initialized.")
+        logging.info(backend_i18n.t("map_importer.init"))
 
     @Slot(str)
     def load_map(self, file_path: str):
@@ -154,7 +155,7 @@ class MapImporter(QObject):
         Starts a MapImportWorker in a separate thread to load the map.
         """
         if not file_path:
-            logging.warning("MapImporter: 'load_map' called with empty path.")
+            logging.warning(backend_i18n.t('map_importer.load_map.no_path'))
             return
 
         worker = MapImportWorker(file_path, self._app_state)
