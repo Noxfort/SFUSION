@@ -66,19 +66,14 @@ class SLMEngine:
         if self.llm is None:
             return None
 
-        # Schema JSON constraint
-        json_schema = {
-            "type": "object",
-            "properties": {
-                "speed_col": {"type": ["string", "null"], "description": "Primary speed variable."},
-                "flow_col": {"type": ["string", "null"], "description": "Primary flow/volume variable."},
-                "intensity_col": {"type": ["string", "null"], "description": "Primary intensity/density variable."},
-                "distance_col": {"type": ["string", "null"], "description": "Fallback for speed. Distance used to calculate speed = distance / time."},
-                "time_col": {"type": ["string", "null"], "description": "Fallback for speed. Time used to calculate speed = distance / time."},
-                "occupancy_col": {"type": ["string", "null"], "description": "Fallback for intensity. Occupancy percentage used when intensity is missing."}
-            },
-            "required": ["speed_col", "flow_col", "intensity_col", "distance_col", "time_col", "occupancy_col"]
-        }
+        # Load schema JSON constraint
+        schema_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'kinematic_schema.json')
+        try:
+            with open(schema_path, 'r', encoding='utf-8') as f:
+                json_schema = json.load(f)
+        except Exception as e:
+            logger.error(f"SLMEngine: Failed to load schema from {schema_path}: {e}")
+            json_schema = {"required": ["speed_col", "flow_col", "intensity_col", "distance_col", "time_col", "occupancy_col"]}
 
         try:
             content_str = raw_content.decode('utf-8', errors='ignore')
@@ -216,6 +211,17 @@ class SLMEngine:
                 f"-----------------------------------------------------------"
             )
             slm_logger.info(f"Extracted Data:\n{json.dumps(data, indent=2)}")
+            
+            # --- TELEMETRIA DE FALHA DE EXTRAÇÃO ---
+            expected_keys = json_schema.get("required", ["speed_col", "flow_col", "intensity_col", "distance_col", "time_col", "occupancy_col"])
+            missing_keys = [k for k in expected_keys if k not in data]
+            
+            if missing_keys:
+                slm_logger.warning(
+                    f"[MISSING DATA] A SLM não conseguiu obter a informação (retornou null) "
+                    f"para as seguintes variáveis no sensor '{source_name}': {', '.join(missing_keys)}"
+                )
+            
             slm_logger.info(f"--- INFERENCE END: {source_name} ---")
             
             # KV Cache reset explicitly removed to prevent GPU reloading bottleneck. 

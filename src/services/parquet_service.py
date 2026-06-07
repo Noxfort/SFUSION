@@ -90,8 +90,8 @@ class ParquetExportWorker(QRunnable):
             df['speed_val'] = pd.to_numeric(df['speed_val'], errors='coerce').replace([np.inf, -np.inf], np.nan)
             df['speed_val'] = df['speed_val'].round(0).astype('Int64')
             
-            df['flow_val'] = pd.to_numeric(df['flow_val'], errors='coerce').replace([np.inf, -np.inf], np.nan)
-            df['intensity_val'] = pd.to_numeric(df['intensity_val'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+            df['flow_val'] = pd.to_numeric(df['flow_val'], errors='coerce').replace([np.inf, -np.inf], np.nan).round(2)
+            df['intensity_val'] = pd.to_numeric(df['intensity_val'], errors='coerce').replace([np.inf, -np.inf], np.nan).round(2)
             
             df['lat'] = pd.to_numeric(df['lat'], errors='coerce')
             df['lon'] = pd.to_numeric(df['lon'], errors='coerce')
