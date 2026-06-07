@@ -70,12 +70,12 @@ class SLMEngine:
         json_schema = {
             "type": "object",
             "properties": {
-                "speed_col": {"type": ["string", "null"]},
-                "flow_col": {"type": ["string", "null"]},
-                "intensity_col": {"type": ["string", "null"]},
-                "distance_col": {"type": ["string", "null"]},
-                "time_col": {"type": ["string", "null"]},
-                "occupancy_col": {"type": ["string", "null"]}
+                "speed_col": {"type": ["string", "null"], "description": "Primary speed variable."},
+                "flow_col": {"type": ["string", "null"], "description": "Primary flow/volume variable."},
+                "intensity_col": {"type": ["string", "null"], "description": "Primary intensity/density variable."},
+                "distance_col": {"type": ["string", "null"], "description": "Fallback for speed. Distance used to calculate speed = distance / time."},
+                "time_col": {"type": ["string", "null"], "description": "Fallback for speed. Time used to calculate speed = distance / time."},
+                "occupancy_col": {"type": ["string", "null"], "description": "Fallback for intensity. Occupancy percentage used when intensity is missing."}
             },
             "required": ["speed_col", "flow_col", "intensity_col", "distance_col", "time_col", "occupancy_col"]
         }

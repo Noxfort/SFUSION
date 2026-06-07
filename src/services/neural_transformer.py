@@ -71,6 +71,13 @@ class NeuralTransformer:
                     if isinstance(val, str) and val.upper() in ["NULL", "NONE", ""]:
                         setattr(schema, field, None)
                 
+                # --- PÓS-SLM VALIDATION ---
+                if assoc_type == "LOCAL":
+                    if not schema.speed_col and (not schema.distance_col or not schema.time_col):
+                        logging.warning(f"NeuralTransformer: SLM missed speed_col and (distance_col + time_col) for LOCAL sensor '{folder_name}'. Physics might fail.")
+                    if not schema.intensity_col and not schema.occupancy_col:
+                        logging.warning(f"NeuralTransformer: SLM missed intensity_col and occupancy_col for LOCAL sensor '{folder_name}'. Physics might fail.")
+                
                 # Cache the result for this sensor folder
                 self._schema_cache[folder_name] = schema
             return schema
